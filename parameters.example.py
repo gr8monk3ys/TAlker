@@ -4,7 +4,7 @@ password = "your_secure_password"
 class_code = "example_class_code"
 
 # Model configurations
-model_name = "gpt-3.5-turbo"
+model_name = "gpt-3.5-turbo-16k-0613"
 
 # Thresholds and limits for processing
 jsim_threshold = 0.25

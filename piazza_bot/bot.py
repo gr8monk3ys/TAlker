@@ -1,11 +1,9 @@
 import logging
 import time
 import piazza_api
-from .utils import PostInfo, ignore_error
 from .responses import Answer, Followup
 
 PostInfo = collections.namedtuple("PostInfo", ["username", "text", "post_id", "status"])
-
 class ignore_error:
     def __init__(self, *error_types):
         self.error_types = error_types
@@ -18,7 +16,6 @@ class ignore_error:
             except self.error_types as e:
                 logging.error(f"Ignoring error {e} in function {func.__name__}")
         return wrapped
-
 
 def test_ignore_error():
     @ignore_error(KeyError, ValueError)
@@ -39,7 +36,6 @@ def test_ignore_error():
         assert False
     except KeyError:
         pass
-
 
 class PiazzaBot:
     POST_LOOKBACK_LIMIT = 50

@@ -1,9 +1,8 @@
-langchain
 transformers
 flask
 streamlit
-dotenv
-pinecoe
+python-dotenv
+pinecone-client
 jsim
 piazza-api
 py
@@ -12,9 +11,9 @@ requests
 openpyxl
 pandas
 plotly
-streamlit
 fastapi
 openai
-python-dotenv
 faiss-cpu
 tiktoken
+langchain-community
+langchain

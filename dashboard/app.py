@@ -1,74 +1,100 @@
+import pandas as pd
 import streamlit as st
-from langchain.document_loaders.csv_loader import CSVLoader
-from langchain.vectorstores import FAISS
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from dotenv import load_dotenv
+from pathlib import Path
+# from llm import *
 
-load_dotenv()
+def check_and_open_file(file_path):
+    # Convert to a Path object for easier handling
+    file_path = Path(file_path)
+    
+    # Check if the file exists
+    if not file_path.is_file():
+        print(f"File does not exist: {file_path}")
+        return None
+    
+    # Attempt to open the file, handling possible permission errors
+    try:
+        return open(file_path, "rb")
+    except PermissionError:
+        print(f"Permission denied for file: {file_path}")
+    except Exception as e:
+        print(f"An error occurred while opening file {file_path}: {e}")
 
-# 1. Vectorise the sales response csv data
-loader = CSVLoader(file_path="insert_file_here.csv")
-documents = loader.load()
+def calculate_column_widths(dataframe):
+            # Calculate the maximum width for each column (based on character count)
+            widths = []
+            for column in dataframe.columns:
+                max_len = max(
+                    dataframe[column].astype(str).apply(len).max(),  # max length in column
+                    len(str(column)),
+                )  # length of column name\\header
+                widths.append(max_len)
+            return widths
 
-embeddings = OpenAIEmbeddings()
-db = FAISS.from_documents(documents, embeddings)
+def load_css(file_name):
+    with open(file_name, "r") as f:
+        return f.read()
 
-# 2. Function for similarity search
-def retrieve_info(query):
-    similar_response = db.similarity_search(query, k=3)
-    page_contents_array = [doc.page_content for doc in similar_response]
-    return page_contents_array
+def local_css(file_name):
+    st.markdown(f'<style>{load_css(file_name)}</style>', unsafe_allow_html=True)
 
+def add_file_to_list(uploaded_file):
+    # Create a files list in session state if it doesn't exist
+    if 'files' not in st.session_state:
+        st.session_state['files'] = []
 
-# 3. Setup LLMChain & prompts
-llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
-
-template = """
-You are a {role} for {classroom}.
-I will share a prospect's message with you and you will give me the best answer that
-I should send to this prospect based on past best practies,
-and you will follow ALL of the rules below:
-
-1/ Response should be very similar or even identical to the past best practies,
-in terms of length, ton of voice, logical arguments and other details
-
-2/ If the best practice are irrelevant, then try to mimic the style of the best practice to prospect's message
-
-Below is a message I received from the prospect:
-{message}
-
-Here is a list of best practies of how we normally respond to prospect in similar scenarios:
-{best_practice}
-
-Please write the best response that I should send to this prospect:
-"""
-
-prompt = PromptTemplate(
-    input_variables=["role","classroom", "message", "best_practice"],
-    template=template
-)
-chain = LLMChain(llm=llm, prompt=prompt)
-
-# 4. Retrieval augmented generation
-def generate_response(message):
-    best_practice = retrieve_info(message)
-    response = chain.run(message=message, best_practice=best_practice)
-    return response
-
-# 5. Build an app with streamlit
-def main():
-    st.set_page_config(
-        page_title="Customer response generator", page_icon=":bird:")
-    st.header("Customer response generator :bird:")
-    message = st.text_area("customer message")
-    if message:
-        st.write("Generating best practice message...")
-        result = generate_response(message)
-        st.info(result)
-
-
+    # Add file information to the list
+    st.session_state['files'].append({
+        "filename": uploaded_file.name,
+        "type": uploaded_file.type,
+        "size": uploaded_file.size
+    })
+    
 if __name__ == '__main__':
-    main()
+    local_css('style.css')
+    with st.sidebar:
+        st.title("TAlker")
+        choice = st.radio("Navigation", ["Upload", "Data Source", "Analysis"])
+        st.info("This dashboard is multi-use for simplifying everyday information of the TA bot knowledge base")
+    
+    if choice == "Upload":
+        col1, col2 = st.columns(2)
+        with col1:
+            uploaded_file = st.file_uploader("Drag or Upload PDFs or Slides here", type=['pdf', 'png', 'jpg', 'jpeg', 'mp4', 'mp3'])
+            submit_button = st.button('Submit')
+
+            # Handle file submission
+            if submit_button:
+                if uploaded_file is not None:
+                    add_file_to_list(uploaded_file)
+                    st.success("File submitted!")
+                else:
+                    st.error("Please upload a file before submitting.")
+
+            # Display the list of uploaded files
+            if 'files' in st.session_state:
+                st.write("Uploaded Files:")
+                for file_info in st.session_state['files']:
+                    st.write(f"{file_info['filename']}")
+
+        with col2:
+            # Optionally, display a text area for additional interactions
+            message = st.text_area("Test message")
+            message_submit = st.button('Test')
+            if message_submit:
+                st.write("Generating best practice message...")
+                result = llm_chain.generate_response(message)
+                st.info(result)
+
+    if choice == "Data Source":
+        st.title("The data that already existed in database")
+        data = '../data/customers-100.csv'
+        df = pd.read_csv(data)
+        st.table(df)
+
+    if choice == "Analysis":
+        st.title("Look at figures and statistics")
+        st.write("The most frequently asked questions")
+        st.write("The most active users:")
+        st.write("The questions that can't be answered by the bot:")
+

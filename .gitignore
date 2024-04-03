@@ -3,3 +3,5 @@ env/*
 *.pyc
 *.jsim.json
 parameters.py
+config.yaml
+secrets.toml

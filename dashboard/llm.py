@@ -1,50 +1,57 @@
 from langchain.document_loaders.csv_loader import CSVLoader
-from langchain.vectorstores import FAISS
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import LLMChain
-from dotenv import load_dotenv
+from langchain_community.vectorstores import FAISS
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai.chat_models import ChatOpenAI
+# from langchain_community.llms import Ollama
+from langchain_core.output_parsers import StrOutputParser
+import pandas as pd
+import logging
 
 class Llm_chain:
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-16k-0613")
-
-    template = """
-    You are a {role} for {classroom}.
-    I will share a prospect's message with you and you will give me the best answer that
-    I should send to this prospect based on past best practies,
-    and you will follow ALL of the rules below:
-    1/ Response should be very similar or even identical to the past best practies,
-    in terms of length, ton of voice, logical arguments and other details
-    2/ If the best practice are irrelevant, then try to mimic the style of the best practice to prospect's message
-    Below is a message I received from the prospect:
-    {message}
-    Here is a list of best practies of how we normally respond to prospect in similar scenarios:
-    {best_practice}
-    Please write the best response that I should send to this prospect:
-    """
-    prompt = PromptTemplate(
-        input_variables=["role","classroom", "message", "best_practice"],
-        template=template
-    )
-    chain = LLMChain(llm=llm, prompt=prompt)
-
-    def create_vector_store(self, file):
-        loader = CSVLoader(file_path=file)
-        documents = loader.load()
-        embeddings = OpenAIEmbeddings()
-        db = FAISS.from_documents(documents, embeddings)
+    def __init__(self):
+        self.loader = CSVLoader(file_path='../data/posts.csv')
+        self.documents = self.loader.load()
+        
+        self.embeddings = OpenAIEmbeddings()
+        self.faiss_db = FAISS.from_documents(self.documents, self.embeddings)
 
     def retrieve_info(self, query):
-        similar_response = db.similarity_search(query, k=3)
+        if not isinstance(query, str):
+            logging.error(f"Query must be a string, received: {type(query)}")
+            return []
+        similar_response = self.faiss_db.similarity_search(query, k=3)
         page_contents_array = [doc.page_content for doc in similar_response]
+        print(page_contents_array)
         return page_contents_array
 
-    def generate_response(self, message):
-        best_practice = retrieve_info(message)
-        response = chain.run(message=message, best_practice=best_practice)
-        return response
+    def generate_response(self, message, classroom):
+        existing_posts = self.retrieve_info(message)
+        existing_posts_str = "\n".join(existing_posts) if isinstance(existing_posts, list) else existing_posts
+        print(existing_posts_str)
 
-if __name__ == '__main__':
-    load_dotenv()
-    llm_chain = Llm_chain()
+        llm = ChatOpenAI(openai_api_key='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', model="gpt-4-turbo-preview")
+        # llm = Ollama(model="llama2")
+        prompt = ChatPromptTemplate.from_template("""You are a teaching assistant for {classroom}.
+        I will share a student's message with you and you will give me the best answer that
+        I should send to this student based on past best practices,
+        and you will follow ALL of the rules below:
+        
+        1/ Response should be very similar or even identical to the past best practies,
+        in terms of length, tone of voice, logical arguments and other details.
+        2/ If the best practices are irrelevant, then try to mimic the style of the best practice to student's message, if name is anonymous then state them as student.
+
+        Below is a message I received from the student:
+        {message}
+        """
+        )
+        output_parser = StrOutputParser()
+        chain = prompt | llm | output_parser
+        response = chain.invoke(
+            {
+            "classroom":classroom, 
+            "message": message, 
+            # "existing_posts": existing_posts_str
+            }
+        )
+        return response

@@ -1,4 +1,3 @@
-chromadb
 fastapi
 faiss-cpu
 flask

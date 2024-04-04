@@ -4,6 +4,7 @@ flask
 jsim
 langchain
 langchain-community
+langchain-core
 langchain-openai
 openai
 openpyxl
@@ -16,7 +17,7 @@ pytest
 python-dotenv
 requests
 streamlit
-streamlit_authenticator
+streamlit-authenticator
 textblob
 tiktoken
 transformers

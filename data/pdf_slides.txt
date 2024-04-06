@@ -178,7 +178,6 @@ sample)
 18
 Confidence intervals — continued
 19
-�! − �"#$,&/$. SE �! , �! + �"#$,&/$. SE �!
 ^ ^ ^ ^
 More accurate CI
 Approximate CI for 
@@ -236,7 +235,6 @@ approximately [0.042, 0.053]
 Approximate CI for 
 1-α=0.95 (by the 
 textbook)
-�! − �"#$,&/$. SE �! , �! + �"#$,&/$. SE �!
 ^ ^ ^ ^
 More accurate CI
 Hypothesis testing •Standard errors can also be used to perform 
@@ -264,8 +262,7 @@ Hypothesis testing — continued
 degrees of freedom, assuming β1 = 0.
 Hypothesis testing — continued
 • If the null hypothesis is true, the 
-probability of observing � > �!"#,%/#or
-� < �!"#,%/# would be α. α is the probability 
+probability of observing
 of rejecting a true null hypothesis, i.e. a 
 Type-I error, and should be set ahead of 
 time (metaphorically, by your boss). Why? 
@@ -561,7 +558,6 @@ Y
 Confidence intervals for Multiple 
 Regression
 64
-�( − �"#)#!,&/$. SE �( , �( + �"#)#!,&/$. SE �(
 ^ ^ ^ ^
 An interval that will contain the true unknown 
 value of the parameter βi in 1-α percent of 
@@ -1043,12 +1039,6 @@ yi is 0 or 1.
 The joint probability mass function of 
 this independent sample is:
 23
-�!|#(�$, �%,…, �&|Data)
-= Pr(�($) = �$, �(%) = �%,…, �(&) = �&|Data)
-= Pr(�($) = �$|Data) Pr(�(%) = �%|Data)…Pr(�(&) = �&|Data)
-Data: �($)
-= �$,…, �(&)
-= �&
 Independent Sample of Bernoulli 
 Variables
 The assumption is that the 
@@ -1898,11 +1888,6 @@ Fb Score: seeks a skewed balance between
 Precision (ratio of true positives to all 
 detected positives) and Recall (True 
 Positive Rate).
-�b =
-b! + 1
-b!
-������ + 1
-���������
 112
 Multiple Classes?
 Precision/recall/Fb are specific to 
@@ -2090,7 +2075,7 @@ How to estimate fk(xi
 132
 Gaussian distribution:
 f k (xi
-) = Pr �" = �" � = � =
+) = Pr 
 #
 !$%!"
 e
@@ -3031,16 +3016,16 @@ Each bootstrap data set is
 used to obtain an estimate of 
 α.
 The Bootstrap: An Example (cont.)
-Denoting the first bootstrap data set by �∗1
+Denoting the first bootstrap data set by 
 , we 
-can use �∗1to produce a new bootstrap 
+can use to produce a new bootstrap 
 estimate for α, which we call
 This procedure is repeated B times for some 
 large value of B (say 100 or 1000), in order to 
-produce B different bootstrap data sets, �∗1
+produce B different bootstrap data sets, 
 ,
-�∗2
-,…, �∗B
+
+,…, 
 , and B corresponding α estimates,
 .
 The Bootstrap: An Example (cont.)
@@ -5538,7 +5523,7 @@ Inner products and support
 vectors
 It can be shown that a class of functions 
 called kernels can be represented as inner 
-products < � � ,� �! >
+products < >
 The interesting point is that we do not need 
 to explicitly know the function φ(x) to use 
 the kernel that correspond to it!
@@ -9003,7 +8988,7 @@ s(M) = -2F'
 (M)
 (n(M)
 )(y-a)
-will be replaced with ���
+will be replaced with 
 Weight Update
 87
 • W(m)
@@ -9736,11 +9721,11 @@ variable length inputs or outputs
 •Especially, for natural language 
 processing (NLP)
 Sequential data
-•Each data point: A sequence of vectors �(�)
+•Each data point: A sequence of vectors
 , 
-for 1 ≤ � ≤ �
+
 •Batch data: many sequences with different 
-lengths �
+lengths 
 •Label: can be a scalar, a vector, or even a 
 sequence
 •Example
@@ -9774,7 +9759,7 @@ Figure from Deep Learning,
 Goodfellow, Bengio and
 Courville
 Compact view
-Key: the same �and �
+Key: the same 
 for all timesteps
 square: one step time delay
 Figure from Deep Learning,
@@ -9864,7 +9849,7 @@ Example: only output at theend
 Figure from Deep Learning,
 Goodfellow, Bengio and Courville
 Bidirectional RNNs
-•Many applications: output at time �
+•Many applications: output at time 
 may depend on the whole input
 sequence
 •Example in speech recognition: correct
@@ -10299,20 +10284,9 @@ Preliminaries
 • We marginalize over a variable by 
 wading it out via summing on all of its 
 possible values
-� � = � � = �,� = � =
-� � = �,� = �, � = �
-� � = �,� = �
-=
-∑! ∑" ∑# � � = �,� = �, � = �,� = �, � = �, � = �
-∑! ∑" ∑$ ∑# � � = �,� = �, � = �,� = �, � = �, � = �
+
 Marginals: simplified notation
 • Example:
-� � �,� =
-� �,�, �
-� �,�
-=
-∑! ∑" ∑# � �,�, �,�, �
-∑% ∑& ∑' ∑( � �,�, �,�, �
 Problems in GMs
 • The main problems that need to be 
 addressed are:

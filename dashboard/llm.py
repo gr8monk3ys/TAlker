@@ -6,8 +6,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 import os
+from dotenv import load_dotenv
 
-os.environ["OPENAI_API_KEY"] = "sk-REDACTED"
 
 class Llm_chain:
     def __init__(self):
@@ -51,6 +51,8 @@ class Llm_chain:
         return conversation_chain
 
     def _setup_chain(self):
+        #os.environ["OPENAI_API_KEY"] = "sk-REDACTED"
+        load_dotenv()
         text = self._get_doc_text()
         chunks = self._get_text_chunks(text)
         embeddings = self._get_vectorstore(chunks)

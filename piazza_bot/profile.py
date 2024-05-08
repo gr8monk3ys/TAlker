@@ -2,6 +2,10 @@ import logging, os, re, sys
 from bot import Answer, Followup, PiazzaBot
 import parameters
 import pandas as pd
+import sys
+sys.path.insert(0, '../dashboard')  # Adjust the path to where llm.py is relative to profile.py
+from llm import Llm_chain
+
 
 class Profile:
     def die(self, message):
@@ -29,7 +33,17 @@ class Profile:
     def main(self):
         logging.basicConfig(level=logging.DEBUG)
         bot = self.create_bot()
-        bot.process_all_posts()
+        processed_posts = set()
+
+        while True:
+            all_posts = bot.fetch_all_posts()
+            new_posts = [post for post in all_posts if post['id'] not in processed_posts]
+
+            for post in new_posts:
+                if not bot.already_answered(post):
+                    response = llm_chain.generate_response(post['history'], post['classroom'])
+                    bot.post_response(post['id'], response)
+                    processed_posts.add(post['id'])
 
 if __name__ == '__main__':
     profile = Profile()

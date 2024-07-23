@@ -14,15 +14,6 @@ class Llm_chain:
         self._data_path = '../data/pdf_slides.txt'  
         self.conversation_chain = None
         self._setup_chain()
-
-    # def _get_doc_text(self):
-    #     with open(self._data_path, 'rb') as file:
-    #         text = ''
-    #         pdf_reader = PdfReader(file)
-    #         for page_num in range(len(pdf_reader.pages)):
-    #             page = pdf_reader.pages[page_num]
-    #             text += page.extract_text()
-    #     return text
         
     def _get_doc_text(self):
         with open(self._data_path, 'r', encoding='utf-8') as file:

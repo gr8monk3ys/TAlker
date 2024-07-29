@@ -22,7 +22,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+[![GNU License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
 
@@ -31,7 +31,6 @@
 <br />
 <div align="center">
   <a href="https://github.com/gr8monk3ys/TABot">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
 <h3 align="center">TA Bot</h3>
@@ -85,7 +84,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `github_username`, `repo_name`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+TA Bot is an innovative solution designed to automate teaching assistant tasks using the Piazza API, LangChain, FAISS, and Ollama2. This project aims to streamline the workflow of teaching assistants by leveraging advanced machine learning and natural language processing techniques.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -104,7 +103,6 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
 To get the TA Bot running locally, follow these simple steps.
 
 ### Prerequisites
@@ -115,7 +113,7 @@ To get the TA Bot running locally, follow these simple steps.
 
 ### Installation
 
-1. Get a API Key at [https://example.com](https://example.com)
+1. Get an API Key at [https://example.com](https://example.com)
 2. Clone the repo
    ```sh
    git clone https://github.com/gr8monk3ys/TABot.git
@@ -126,6 +124,7 @@ To get the TA Bot running locally, follow these simple steps.
    source env/bin/activate
    pip install -r requirements.txt
    ```
+4. Change `config.example.toml` to `config.toml` and do the following
 
 
 5. Change `config.example.toml` to `config.toml` and do the following

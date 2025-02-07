@@ -1,13 +1,31 @@
-dashboard:
-	cd dashboard &&
-	streamlit run app.py
+.PHONY: install run setup clean lint format test dev
 
 install:
-	pip install -r requirements.txt
+	poetry install
 
+run:
+	poetry run streamlit run src/dashboard/Home.py
 
-init:
-	python -m venv env &&
-	source env/bin/activate
-	pip install -r requirements.txt
-	
+setup:
+	python -m pip install --upgrade pip
+	python -m pip install poetry
+	poetry install
+
+clean:
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type f -name '*.pyc' -delete
+	find . -type f -name '.coverage' -delete
+	find . -type d -name '.pytest_cache' -exec rm -rf {} +
+	find . -type d -name '*.egg-info' -exec rm -rf {} +
+
+lint:
+	poetry run pylint src/piazza_bot src/dashboard
+
+format:
+	poetry run black src/
+
+test:
+	poetry run pytest
+
+dev: install
+	poetry run streamlit run src/dashboard/Home.py

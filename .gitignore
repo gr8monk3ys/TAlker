@@ -5,3 +5,4 @@ env/*
 parameters.py
 config.yaml
 secrets.toml
+.venv

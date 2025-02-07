@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "talker"
+version = "0.1.0"
+description = "A Piazza Teaching Assistant Bot"
+authors = ["Lorenzo Scaturchio"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
+streamlit = "^1.29.0"
+streamlit-authenticator = "^0.3.1"
+piazza-api = "^0.12.0"
+python-dotenv = "^1.0.0"
+langchain = "^0.3.18"
+langchain-community = "^0.3.17"
+openai = "^1.0.0"
+faiss-cpu = "^1.7.4"
+pypdf2 = "^3.0.1"
+pandas = "^2.1.4"
+tiktoken = "^0.5.2"
+plotly = "^5.18.0"
+wordcloud = "^1.9.3"
+matplotlib = "^3.8.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.1.1"
+pylint = "^3.0.3"
+pytest = "^8.0.0"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.pylint.messages_control]
+disable = [
+    "C0111",  # missing-docstring
+    "C0103",  # invalid-name
+    "C0330",  # bad-continuation
+    "C0326",  # bad-whitespace
+]
+
+[tool.pylint.format]
+max-line-length = 88
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

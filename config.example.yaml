@@ -1,0 +1,15 @@
+credentials:
+  usernames:
+    gr8monk3ys:
+      email: admin@example.com
+      name: Admin User
+      password: abc123  # This should be hashed in the actual config.yaml
+
+cookie:
+  expiry_days: 30
+  key: random_signature_key
+  name: random_cookie_name
+
+preauthorized:
+  emails:
+    - admin@example.com

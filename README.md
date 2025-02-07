@@ -1,214 +1,124 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a name="readme-top"></a>
-<!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Don't forget to give the project a star!
-*** Thanks again! Now go create something AMAZING! :D
--->
+# TAlker - AI-Powered Teaching Assistant Bot
 
+An innovative solution for automating teaching assistant tasks using the Piazza API, LangChain, FAISS, and OpenAI. This bot helps teaching assistants manage and respond to student questions efficiently through an intuitive web interface.
 
+## Features
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![GNU License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
+- **Automated Response Generation**: Uses OpenAI and LangChain to generate contextually relevant responses to student questions
+- **Piazza Integration**: Seamlessly integrates with Piazza's platform for managing course Q&A
+- **Smart Search**: Utilizes FAISS for efficient similarity search and retrieval of relevant information
+- **Modern Web Interface**: Built with Streamlit for a clean, responsive user experience
+- **Secure Authentication**: Implements user authentication to protect sensitive course data
 
+## Prerequisites
 
+- Python 3.9 or higher
+- Poetry (Python package manager)
+- OpenAI API key
+- Piazza account credentials
 
-<!-- PROJECT LOGO -->
-<br />
-<div align="center">
-  <a href="https://github.com/gr8monk3ys/TABot">
-  </a>
+## Installation
 
-<h3 align="center">TA Bot</h3>
-
-  <p align="center">
-    An innovative solution for automating teaching assistant tasks using the Piazza API, LangChain, FAISS, and Ollama2.
-    <br />
-    <a href="https://github.com/gr8monk3ys/TABot"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/gr8monk3ys/TABot">View Demo</a>
-    ·
-    <a href="https://github.com/gr8monk3ys/TABot/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/gr8monk3ys/TABot/issues">Request Feature</a>
-  </p>
-</div>
-
-
-
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
-
-
-
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-TA Bot is an innovative solution designed to automate teaching assistant tasks using the Piazza API, LangChain, FAISS, and Ollama2. This project aims to streamline the workflow of teaching assistants by leveraging advanced machine learning and natural language processing techniques.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-### Built With
-* [Piazza API](https://piazza.com)
-* [LangChain](https://langchain.com)
-* [FAISS](https://github.com/facebookresearch/faiss)
-* [Ollama2](https://github.com/OpenAI/ollama)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-To get the TA Bot running locally, follow these simple steps.
-
-### Prerequisites
-
-- Python 3.8+
-- PIP for installing Python packages
-- Ollama2 for LLM
-
-### Installation
-
-1. Get an API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/gr8monk3ys/TABot.git
-   ```
-3. Install packages
-   ```sh
-   python -m venv env
-   source env/bin/activate
-   pip install -r requirements.txt
-   ```
-4. Change `config.example.toml` to `config.toml` and do the following
-
-
-5. Change `config.example.toml` to `config.toml` and do the following
-   ```toml
-   const API_KEY = 'ENTER YOUR API';
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/gr8monk3ys/TAlker.git
+   cd TAlker
    ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` and add your credentials:
+   ```
+   OPENAI_API_KEY=your_openai_api_key
+   PIAZZA_EMAIL=your_piazza_email
+   PIAZZA_PASSWORD=your_piazza_password
+   PIAZZA_COURSE_ID=your_course_id
+   ```
 
+3. Install dependencies using Poetry:
+   ```bash
+   make setup
+   ```
 
-
-<!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+1. Start the application:
+   ```bash
+   make run
+   ```
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+2. For development with auto-reload:
+   ```bash
+   make dev
+   ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+3. Access the web interface at `http://localhost:8501`
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+## Development
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+- Format code:
+  ```bash
+  make format
+  ```
 
-<!-- CONTRIBUTING -->
+- Run linting:
+  ```bash
+  make lint
+  ```
+
+- Run tests:
+  ```bash
+  make test
+  ```
+
+## Project Structure
+
+```
+TAlker/
+├── src/
+│   ├── dashboard/         # Web interface components
+│   │   ├── Home.py       # Main Streamlit application
+│   │   └── llm.py        # LangChain integration
+│   └── piazza_bot/       # Core bot functionality
+│       ├── bot.py        # Piazza API integration
+│       ├── profile.py    # User profile management
+│       └── responses.py  # Response generation
+├── data/                 # Data storage
+├── tests/               # Test suite
+├── pyproject.toml       # Poetry dependencies
+└── Makefile            # Development commands
+```
+
+## Available Commands
+
+- `make setup`: Install Poetry and project dependencies
+- `make run`: Start the Streamlit application
+- `make dev`: Start the application in development mode
+- `make lint`: Run Pylint for code quality checks
+- `make format`: Format code using Black
+- `make test`: Run the test suite
+- `make clean`: Clean up cache and temporary files
+
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Format and lint your code (`make format && make lint`)
+4. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+5. Push to the branch (`git push origin feature/AmazingFeature`)
+6. Open a Pull Request
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the GNU License. See `LICENSE.txt` for more information.
+This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* [Wendy Zhai](https://github.com/wendyzhai916)
-* [Chen Qingyu](https://github.com/JaadeChen)
-* [Lorenzo Scaturchio](https://github.com/gr8monk3ys)
+- [Piazza API](https://github.com/hfaran/piazza-api)
+- [LangChain](https://github.com/hwchase17/langchain)
+- [FAISS](https://github.com/facebookresearch/faiss)
+- [Streamlit](https://streamlit.io/)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/github_username/repo_name.svg?style=for-the-badge
-[contributors-url]: https://github.com/github_username/repo_name/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/github_username/repo_name.svg?style=for-the-badge
-[forks-url]: https://github.com/github_username/repo_name/network/members
-[stars-shield]: https://img.shields.io/github/stars/github_username/repo_name.svg?style=for-the-badge
-[stars-url]: https://github.com/github_username/repo_name/stargazers
-[issues-shield]: https://img.shields.io/github/issues/github_username/repo_name.svg?style=for-the-badge
-[issues-url]: https://github.com/github_username/repo_name/issues
-[license-shield]: https://img.shields.io/github/license/github_username/repo_name.svg?style=for-the-badge
-[license-url]: https://github.com/github_username/repo_name/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/linkedin_username
-[product-screenshot]: images/screenshot.png
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
-[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
-[React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
-[Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
-[Bootstrap-url]: https://getbootstrap.com
-[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com
+[Back to top](#talker---ai-powered-teaching-assistant-bot)

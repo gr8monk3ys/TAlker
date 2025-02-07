@@ -1,0 +1,24 @@
+[MASTER]
+ignore=CVS
+persistent=yes
+load-plugins=
+
+[MESSAGES CONTROL]
+disable=C0111,C0103
+
+[FORMAT]
+max-line-length=88
+indent-after-paren=4
+indent-string='    '
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,id,df
+
+[MISCELLANEOUS]
+notes=FIXME,XXX,TODO
+
+[SIMILARITIES]
+min-similarity-lines=4
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes

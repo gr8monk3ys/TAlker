@@ -1,4 +1,5 @@
 import os
+import re
 import streamlit as st
 from datetime import datetime
 import PyPDF2
@@ -10,6 +11,33 @@ st.set_page_config(page_title="Upload", page_icon="📤", layout="wide", initial
 # Initialize directory path
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data")
 os.makedirs(DATA_DIR, exist_ok=True)
+
+# Security constants
+MAX_FILE_SIZE_MB = 50
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.csv', '.md'}
+
+def sanitize_filename(filename: str) -> str:
+    """Sanitize filename to prevent path traversal and other security issues."""
+    # Get only the basename (remove any directory components)
+    filename = os.path.basename(filename)
+    # Remove any null bytes
+    filename = filename.replace('\x00', '')
+    # Remove or replace dangerous characters
+    filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    # Limit length
+    if len(filename) > 255:
+        name, ext = os.path.splitext(filename)
+        filename = name[:255-len(ext)] + ext
+    return filename
+
+def validate_file_path(filepath: str) -> bool:
+    """Validate that the file path is within DATA_DIR to prevent path traversal."""
+    # Resolve to absolute path
+    abs_filepath = os.path.abspath(filepath)
+    abs_data_dir = os.path.abspath(DATA_DIR)
+    # Check if the file path starts with the data directory
+    return abs_filepath.startswith(abs_data_dir + os.sep) or abs_filepath == abs_data_dir
 
 def initialize_files_list():
     """Initialize the list of files in session state."""
@@ -40,10 +68,17 @@ def process_pdf(uploaded_file):
         text = ""
         for page in pdf_reader.pages:
             text += page.extract_text() + "\n"
-        
-        # Save as txt file
-        txt_filename = os.path.splitext(uploaded_file.name)[0] + ".txt"
+
+        # Sanitize filename and save as txt file
+        safe_name = sanitize_filename(uploaded_file.name)
+        txt_filename = os.path.splitext(safe_name)[0] + ".txt"
         txt_path = os.path.join(DATA_DIR, txt_filename)
+
+        # Validate path is within DATA_DIR
+        if not validate_file_path(txt_path):
+            st.error("Invalid file path detected.")
+            return False
+
         with open(txt_path, "w", encoding="utf-8") as f:
             f.write(text)
         return True
@@ -52,38 +87,77 @@ def process_pdf(uploaded_file):
         return False
 
 def save_file(uploaded_file):
-    """Save an uploaded file."""
+    """Save an uploaded file with security validations."""
     if uploaded_file is not None:
         try:
+            # Sanitize filename
+            safe_name = sanitize_filename(uploaded_file.name)
+            if not safe_name:
+                st.error("Invalid filename.")
+                return
+
+            # Validate file extension
+            _, ext = os.path.splitext(safe_name)
+            if ext.lower() not in ALLOWED_EXTENSIONS:
+                st.error(f"File type '{ext}' not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}")
+                return
+
+            # Validate file size
+            if uploaded_file.size > MAX_FILE_SIZE_BYTES:
+                st.error(f"File too large. Maximum size is {MAX_FILE_SIZE_MB}MB.")
+                return
+
+            # Construct and validate file path
+            file_path = os.path.join(DATA_DIR, safe_name)
+            if not validate_file_path(file_path):
+                st.error("Invalid file path detected.")
+                return
+
             # Handle PDFs
             if uploaded_file.type == "application/pdf":
                 if process_pdf(uploaded_file):
-                    st.success(f"PDF {uploaded_file.name} processed and saved as text!")
+                    st.success(f"PDF {safe_name} processed and saved as text!")
                 else:
                     return
-            
+
             # Save original file
-            file_path = os.path.join(DATA_DIR, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            st.success(f"File {uploaded_file.name} saved successfully!")
-            
-            # Update files list
+            st.success(f"File {safe_name} saved successfully!")
+
+            # Update files list and clear cache
+            list_files.clear()
             st.session_state["files"] = list_files(DATA_DIR)
         except Exception as e:
             st.error(f"Error saving file: {str(e)}")
 
 def delete_file(filename):
-    """Delete a file."""
-    file_path = os.path.join(DATA_DIR, filename)
+    """Delete a file with security validations."""
+    # Sanitize filename
+    safe_name = sanitize_filename(filename)
+    if not safe_name:
+        st.error("Invalid filename.")
+        return
+
+    file_path = os.path.join(DATA_DIR, safe_name)
+
+    # Validate path is within DATA_DIR
+    if not validate_file_path(file_path):
+        st.error("Invalid file path detected.")
+        return
+
     try:
-        os.remove(file_path)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
         # Also remove corresponding txt file if it exists
         txt_path = os.path.splitext(file_path)[0] + ".txt"
-        if os.path.exists(txt_path):
+        if validate_file_path(txt_path) and os.path.exists(txt_path):
             os.remove(txt_path)
-        st.success(f"File {filename} deleted successfully!")
-        # Update files list
+
+        st.success(f"File {safe_name} deleted successfully!")
+        # Update files list and clear cache
+        list_files.clear()
         st.session_state["files"] = list_files(DATA_DIR)
     except Exception as e:
         st.error(f"Error deleting file: {str(e)}")

@@ -162,19 +162,34 @@ def main(authenticator, name):
 
 def run():
     """Run the Streamlit application."""
-    try:
-        # Get the absolute path to config.yaml
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(current_dir, "..", "..", "config.yaml")
+    # Get the absolute path to config.yaml
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    config_path = os.path.join(current_dir, "..", "..", "config.yaml")
 
-        if not os.path.exists(config_path):
-            # Run without authentication if no config
+    # Check for environment variable to explicitly allow no-auth mode
+    allow_no_auth = os.getenv("TALKER_ALLOW_NO_AUTH", "false").lower() == "true"
+
+    if not os.path.exists(config_path):
+        if allow_no_auth:
             st.info("No config.yaml found. Running without authentication.")
             main_no_auth()
-            return
+        else:
+            st.error("Authentication configuration not found (config.yaml missing).")
+            st.warning("Set TALKER_ALLOW_NO_AUTH=true environment variable to run without authentication.")
+            st.stop()
+        return
 
+    try:
         with open(config_path, encoding="utf-8") as file:
             config = yaml.load(file, Loader=yaml.SafeLoader)
+
+        # Validate required config sections
+        required_sections = ["credentials", "cookie"]
+        for section in required_sections:
+            if section not in config:
+                st.error(f"Invalid config.yaml: missing '{section}' section.")
+                st.stop()
+                return
 
         authenticator = stauth.Authenticate(
             config["credentials"],
@@ -196,10 +211,15 @@ def run():
             st.warning("Please enter your username and password")
             show_demo_info()
 
+    except yaml.YAMLError as e:
+        st.error(f"Configuration file has invalid YAML syntax: {str(e)}")
+        st.stop()
+    except KeyError as e:
+        st.error(f"Configuration file missing required key: {str(e)}")
+        st.stop()
     except Exception as e:
-        st.error(f"Configuration error: {str(e)}")
-        st.info("Running in demo mode without authentication.")
-        main_no_auth()
+        st.error(f"Authentication error: {str(e)}")
+        st.stop()
 
 
 def main_no_auth():

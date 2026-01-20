@@ -19,12 +19,16 @@ ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.csv', '.md'}
 
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename to prevent path traversal and other security issues."""
+    # Normalize path separators (handle Windows-style paths on Linux)
+    filename = filename.replace('\\', '/')
     # Get only the basename (remove any directory components)
     filename = os.path.basename(filename)
     # Remove any null bytes
     filename = filename.replace('\x00', '')
     # Remove or replace dangerous characters
     filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    # Remove any remaining path traversal attempts
+    filename = filename.replace('..', '')
     # Limit length
     if len(filename) > 255:
         name, ext = os.path.splitext(filename)

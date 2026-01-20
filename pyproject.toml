@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "talker"
-version = "0.2.0"
-description = "A Production-Grade RAG-Powered Piazza Teaching Assistant Bot"
+version = "0.3.0"
+description = "A Production-Grade Multi-Provider RAG Teaching Assistant"
 authors = ["Lorenzo Scaturchio"]
 readme = "README.md"
 packages = [{include = "src"}]
@@ -18,16 +18,27 @@ piazza-api = "^0.12.0"
 
 # Environment & Config
 python-dotenv = "^1.0.0"
+requests = "^2.31.0"
 
 # LangChain Core
 langchain = "^0.3.18"
 langchain-community = "^0.3.17"
-langchain-openai = "^0.3.0"
 langchain-chroma = "^0.2.0"
+
+# LLM Providers
+langchain-openai = "^0.3.0"
+langchain-anthropic = "^0.3.0"
+langchain-google-genai = "^2.0.0"
+langchain-cohere = "^0.3.0"
+langchain-ollama = "^0.3.0"
+langchain-huggingface = "^0.1.0"
 
 # LLM & Embeddings
 openai = "^1.0.0"
 tiktoken = "^0.5.2"
+anthropic = "^0.40.0"
+cohere = "^5.0.0"
+google-generativeai = "^0.8.0"
 
 # Vector Store
 chromadb = "^0.5.0"
@@ -35,6 +46,9 @@ chromadb = "^0.5.0"
 # Hybrid Search & Reranking
 sentence-transformers = "^3.0.0"
 rank-bm25 = "^0.2.2"
+
+# Local Embeddings (optional, for offline use)
+fastembed = {version = "^0.4.0", optional = true}
 
 # Document Processing
 pypdf2 = "^3.0.1"
@@ -45,6 +59,9 @@ pandas = "^2.1.4"
 plotly = "^5.18.0"
 wordcloud = "^1.9.3"
 matplotlib = "^3.8.0"
+
+[tool.poetry.extras]
+local = ["fastembed"]
 
 [tool.poetry.group.dev.dependencies]
 # Testing

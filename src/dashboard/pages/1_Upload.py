@@ -99,6 +99,7 @@ st.write(
     Supported file types:
     - PDF files (will be converted to text)
     - Text files (.txt)
+    - Markdown files (.md)
     - CSV files (for structured data)
     """
 )
@@ -106,7 +107,7 @@ st.write(
 # File uploader
 uploaded_file = st.file_uploader(
     "Choose files to upload",
-    type=["txt", "pdf", "csv"],
+    type=["txt", "pdf", "csv", "md"],
     help="Upload your course materials here. PDFs will be automatically converted to text for better processing.",
     accept_multiple_files=False
 )

@@ -222,6 +222,27 @@ class LlmChain:
                     continue
         return content_hash.hexdigest()
 
+    def _safe_extract_zip(self, zip_path: str, extract_dir: Path) -> bool:
+        """Safely extract a zip file, preventing zip slip attacks."""
+        extract_dir_resolved = extract_dir.resolve()
+
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            for member in zip_ref.namelist():
+                # Get the target path and resolve it
+                member_path = (extract_dir / member).resolve()
+
+                # Security check: ensure path is within extract_dir
+                try:
+                    member_path.relative_to(extract_dir_resolved)
+                except ValueError:
+                    logger.warning(f"Skipping potentially malicious zip member: {member}")
+                    continue
+
+                # Extract safely
+                zip_ref.extract(member, extract_dir)
+
+        return True
+
     def _extract_zip_if_needed(self) -> None:
         """Extract zip files in the data directory if they haven't been extracted."""
         for file_path in glob.glob(str(self.data_dir / "*.zip")):
@@ -231,8 +252,8 @@ class LlmChain:
 
                 if not extract_dir.exists():
                     logger.info(f"Extracting {file_path} to {extract_dir}")
-                    with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                        zip_ref.extractall(extract_dir)
+                    extract_dir.mkdir(parents=True, exist_ok=True)
+                    self._safe_extract_zip(file_path, extract_dir)
                     logger.info(f"Successfully extracted {file_path}")
             except Exception as e:
                 logger.error(f"Error extracting {file_path}: {e}")

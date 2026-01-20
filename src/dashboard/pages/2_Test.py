@@ -2,9 +2,17 @@
 Enhanced chat interface with source citations and confidence scores.
 """
 
+import html
 import streamlit as st
 from src.dashboard.llm import LlmChain, RAGConfig
 import os
+
+
+def escape_html(text: str) -> str:
+    """Escape HTML special characters to prevent XSS."""
+    if text is None:
+        return ""
+    return html.escape(str(text))
 
 st.set_page_config(
     page_title="Test Bot",
@@ -128,12 +136,16 @@ with col1:
                 if message["role"] == "assistant" and "sources" in message:
                     with st.expander("📚 View Sources"):
                         for src in message["sources"]:
+                            # Escape user-controlled content to prevent XSS
+                            safe_source = escape_html(src['source'])
+                            safe_page = escape_html(str(src['page'])) if src.get('page') else ""
+                            safe_content = escape_html(src['content'][:150])
                             st.markdown(f"""
                             <div class="source-card">
-                                <strong>{src['source']}</strong>
-                                {f" (Page {src['page']})" if src.get('page') else ""}
+                                <strong>{safe_source}</strong>
+                                {f" (Page {safe_page})" if safe_page else ""}
                                 <br><small>Relevance: {src['relevance']:.1%}</small>
-                                <br><small style="color: #666;">{src['content'][:150]}...</small>
+                                <br><small style="color: #666;">{safe_content}...</small>
                             </div>
                             """, unsafe_allow_html=True)
 
@@ -171,12 +183,16 @@ with col1:
                         if sources_data:
                             with st.expander("📚 View Sources"):
                                 for src in sources_data:
+                                    # Escape user-controlled content to prevent XSS
+                                    safe_source = escape_html(src['source'])
+                                    safe_page = escape_html(str(src['page'])) if src.get('page') else ""
+                                    safe_content = escape_html(src['content'][:150])
                                     st.markdown(f"""
                                     <div class="source-card">
-                                        <strong>{src['source']}</strong>
-                                        {f" (Page {src['page']})" if src.get('page') else ""}
+                                        <strong>{safe_source}</strong>
+                                        {f" (Page {safe_page})" if safe_page else ""}
                                         <br><small>Relevance: {src['relevance']:.1%}</small>
-                                        <br><small style="color: #666;">{src['content'][:150]}...</small>
+                                        <br><small style="color: #666;">{safe_content}...</small>
                                     </div>
                                     """, unsafe_allow_html=True)
 

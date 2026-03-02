@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "talker"
-version = "0.3.0"
+version = "0.1.0"
 description = "A Production-Grade Multi-Provider RAG Teaching Assistant"
 authors = ["Lorenzo Scaturchio"]
 readme = "README.md"

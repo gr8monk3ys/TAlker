@@ -1,5 +1,9 @@
 # TAlker - Production-Grade RAG Teaching Assistant
 
+<p align="center">
+  <img src="docs/assets/hero.png" alt="TAlker preview" width="640">
+</p>
+
 A multi-provider RAG (Retrieval-Augmented Generation) system for automating teaching assistant tasks. Features hybrid search, cross-encoder reranking, RAGAS evaluation, and support for both cloud and local LLMs.
 
 ## Features

@@ -3,27 +3,22 @@ Settings page for configuring RAG providers and parameters.
 """
 
 import streamlit as st
-from src.dashboard.llm import LlmChain, RAGConfig
+
+from src.dashboard.llm import LlmChain
 from src.dashboard.providers import (
-    LLM_MODELS,
-    EMBEDDING_MODELS,
-    LLMProvider,
     EmbeddingProvider,
-    ProviderConfig,
-    validate_api_keys,
-    check_ollama_availability,
+    LLMProvider,
     get_available_ollama_models,
-    get_models_by_provider,
     get_embeddings_by_provider,
-    get_local_models,
-    get_local_embeddings,
+    get_models_by_provider,
+    validate_api_keys,
 )
 
 st.set_page_config(
     page_title="Settings",
     page_icon="cog:",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 st.title("Settings")
@@ -45,12 +40,20 @@ cols = st.columns(5)
 providers_display = [
     ("OpenAI", api_status.get("openai", False), "https://platform.openai.com/api-keys"),
     ("Anthropic", api_status.get("anthropic", False), "https://console.anthropic.com/"),
-    ("Google", api_status.get("google", False), "https://makersuite.google.com/app/apikey"),
-    ("Cohere", api_status.get("cohere", False), "https://dashboard.cohere.com/api-keys"),
+    (
+        "Google",
+        api_status.get("google", False),
+        "https://makersuite.google.com/app/apikey",
+    ),
+    (
+        "Cohere",
+        api_status.get("cohere", False),
+        "https://dashboard.cohere.com/api-keys",
+    ),
     ("Ollama", ollama_available, "https://ollama.ai"),
 ]
 
-for col, (name, available, url) in zip(cols, providers_display):
+for col, (name, available, url) in zip(cols, providers_display, strict=False):
     with col:
         if available:
             st.success(f"**{name}**")
@@ -82,7 +85,7 @@ with col1:
     selected_provider = st.selectbox(
         "Provider",
         available_providers,
-        help="Select the LLM provider. Only providers with valid API keys are shown."
+        help="Select the LLM provider. Only providers with valid API keys are shown.",
     )
 
     # Get models for selected provider
@@ -100,7 +103,9 @@ with col1:
     # For Ollama, also show locally available models
     if provider_enum == LLMProvider.OLLAMA and ollama_available:
         local_models = get_available_ollama_models()
-        st.info(f"Ollama models available: {', '.join(local_models) if local_models else 'None found'}")
+        st.info(
+            f"Ollama models available: {', '.join(local_models) if local_models else 'None found'}"
+        )
 
     model_options = {m.name: m for m in provider_models}
     current_model = chain.config.llm_model
@@ -109,8 +114,10 @@ with col1:
     selected_model = st.selectbox(
         "Model",
         list(model_options.keys()),
-        index=list(model_options.keys()).index(current_model) if current_model in model_options else 0,
-        help="Select the LLM model to use"
+        index=list(model_options.keys()).index(current_model)
+        if current_model in model_options
+        else 0,
+        help="Select the LLM model to use",
     )
 
     # Show model info
@@ -119,7 +126,9 @@ with col1:
         st.caption(model_info.description)
         st.caption(f"Context: {model_info.context_window:,} tokens")
         if not model_info.is_local:
-            st.caption(f"Cost: ${model_info.input_cost_per_1k:.4f}/1K in, ${model_info.output_cost_per_1k:.4f}/1K out")
+            st.caption(
+                f"Cost: ${model_info.input_cost_per_1k:.4f}/1K in, ${model_info.output_cost_per_1k:.4f}/1K out"
+            )
 
 with col2:
     st.markdown("### Model Parameters")
@@ -130,19 +139,19 @@ with col2:
         max_value=2.0,
         value=chain.config.temperature,
         step=0.1,
-        help="Higher values make output more random, lower values more deterministic"
+        help="Higher values make output more random, lower values more deterministic",
     )
 
     use_query_expansion = st.checkbox(
         "Enable Query Expansion",
         value=chain.config.use_query_expansion,
-        help="Generate multiple query variations for better retrieval"
+        help="Generate multiple query variations for better retrieval",
     )
 
     use_reranker = st.checkbox(
         "Enable Cross-Encoder Reranking",
         value=chain.config.use_reranker,
-        help="Use cross-encoder to rerank retrieved documents for better relevance"
+        help="Use cross-encoder to rerank retrieved documents for better relevance",
     )
 
 # Embedding Configuration
@@ -154,7 +163,13 @@ col1, col2 = st.columns(2)
 with col1:
     st.markdown("### Select Embedding Provider")
 
-    embedding_provider_options = ["OpenAI", "Cohere", "Ollama (Local)", "HuggingFace (Local)", "FastEmbed (Local)"]
+    embedding_provider_options = [
+        "OpenAI",
+        "Cohere",
+        "Ollama (Local)",
+        "HuggingFace (Local)",
+        "FastEmbed (Local)",
+    ]
     available_embed_providers = []
 
     embed_provider_map = {
@@ -173,10 +188,12 @@ with col1:
     selected_embed_provider = st.selectbox(
         "Embedding Provider",
         available_embed_providers,
-        help="Select the embedding provider"
+        help="Select the embedding provider",
     )
 
-    embed_enum, _ = embed_provider_map.get(selected_embed_provider, (EmbeddingProvider.OPENAI, None))
+    embed_enum, _ = embed_provider_map.get(
+        selected_embed_provider, (EmbeddingProvider.OPENAI, None)
+    )
     embed_models = get_embeddings_by_provider(embed_enum)
 
     embed_model_options = {m.name: m for m in embed_models}
@@ -185,8 +202,10 @@ with col1:
     selected_embed = st.selectbox(
         "Embedding Model",
         list(embed_model_options.keys()),
-        index=list(embed_model_options.keys()).index(current_embed) if current_embed in embed_model_options else 0,
-        help="Select the embedding model. Changing this will rebuild the vector index."
+        index=list(embed_model_options.keys()).index(current_embed)
+        if current_embed in embed_model_options
+        else 0,
+        help="Select the embedding model. Changing this will rebuild the vector index.",
     )
 
     # Show embedding info
@@ -205,7 +224,7 @@ with col2:
         min_value=5,
         max_value=50,
         value=chain.config.initial_k,
-        help="Number of documents to retrieve before reranking"
+        help="Number of documents to retrieve before reranking",
     )
 
     final_k = st.number_input(
@@ -213,7 +232,7 @@ with col2:
         min_value=1,
         max_value=20,
         value=chain.config.final_k,
-        help="Number of documents to keep after reranking"
+        help="Number of documents to keep after reranking",
     )
 
     bm25_weight = st.slider(
@@ -222,7 +241,7 @@ with col2:
         max_value=1.0,
         value=chain.config.bm25_weight,
         step=0.1,
-        help="Weight for keyword-based BM25 retrieval (semantic = 1 - BM25)"
+        help="Weight for keyword-based BM25 retrieval (semantic = 1 - BM25)",
     )
 
     similarity_threshold = st.slider(
@@ -231,7 +250,7 @@ with col2:
         max_value=1.0,
         value=chain.config.similarity_threshold,
         step=0.05,
-        help="Minimum similarity score for retrieved documents"
+        help="Minimum similarity score for retrieved documents",
     )
 
 # Chunking Configuration
@@ -247,7 +266,7 @@ with col1:
         max_value=4000,
         value=chain.config.chunk_size,
         step=100,
-        help="Size of text chunks in characters"
+        help="Size of text chunks in characters",
     )
 
 with col2:
@@ -257,7 +276,7 @@ with col2:
         max_value=500,
         value=chain.config.chunk_overlap,
         step=50,
-        help="Overlap between consecutive chunks"
+        help="Overlap between consecutive chunks",
     )
 
 # Apply Changes
@@ -289,8 +308,7 @@ with col1:
                 if embed_changed:
                     st.warning("Embedding model changed. Rebuilding vector index...")
                     success = chain.switch_provider(
-                        llm_model=selected_model,
-                        embedding_model=selected_embed
+                        llm_model=selected_model, embedding_model=selected_embed
                     )
                 else:
                     success = chain.switch_provider(llm_model=selected_model)

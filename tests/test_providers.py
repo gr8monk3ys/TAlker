@@ -2,7 +2,6 @@
 Tests for the multi-provider system.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
 
@@ -33,7 +32,7 @@ class TestLLMModels:
         """Test that local models have zero cost."""
         from src.dashboard.providers import LLM_MODELS
 
-        for name, model in LLM_MODELS.items():
+        for model in LLM_MODELS.values():
             if model.is_local:
                 assert model.input_cost_per_1k == 0.0
                 assert model.output_cost_per_1k == 0.0
@@ -82,7 +81,7 @@ class TestProviderConfig:
         config = ProviderConfig(
             llm_model="claude-3-5-sonnet-20241022",
             embedding_model="embed-english-v3.0",
-            temperature=0.5
+            temperature=0.5,
         )
 
         assert config.llm_model == "claude-3-5-sonnet-20241022"
@@ -161,9 +160,9 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="gpt-4o")
 
-        with patch('src.dashboard.providers.ChatOpenAI') as mock:
+        with patch("src.dashboard.providers.ChatOpenAI") as mock:
             mock.return_value = MagicMock()
-            llm = LLMFactory.create(config)
+            LLMFactory.create(config)
             mock.assert_called_once()
 
     def test_create_anthropic_llm(self):
@@ -172,9 +171,9 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="claude-3-5-sonnet-20241022")
 
-        with patch('src.dashboard.providers.ChatAnthropic') as mock:
+        with patch("src.dashboard.providers.ChatAnthropic") as mock:
             mock.return_value = MagicMock()
-            llm = LLMFactory.create(config)
+            LLMFactory.create(config)
             mock.assert_called_once()
 
     def test_create_ollama_llm(self):
@@ -183,9 +182,9 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="llama3.1:8b")
 
-        with patch('src.dashboard.providers.ChatOllama') as mock:
+        with patch("src.dashboard.providers.ChatOllama") as mock:
             mock.return_value = MagicMock()
-            llm = LLMFactory.create(config)
+            LLMFactory.create(config)
             mock.assert_called_once()
 
 
@@ -198,9 +197,9 @@ class TestEmbeddingFactory:
 
         config = ProviderConfig(embedding_model="text-embedding-3-large")
 
-        with patch('src.dashboard.providers.OpenAIEmbeddings') as mock:
+        with patch("src.dashboard.providers.OpenAIEmbeddings") as mock:
             mock.return_value = MagicMock()
-            embeddings = EmbeddingFactory.create(config)
+            EmbeddingFactory.create(config)
             mock.assert_called_once()
 
     def test_create_ollama_embeddings(self):
@@ -209,9 +208,9 @@ class TestEmbeddingFactory:
 
         config = ProviderConfig(embedding_model="nomic-embed-text")
 
-        with patch('src.dashboard.providers.OllamaEmbeddings') as mock:
+        with patch("src.dashboard.providers.OllamaEmbeddings") as mock:
             mock.return_value = MagicMock()
-            embeddings = EmbeddingFactory.create(config)
+            EmbeddingFactory.create(config)
             mock.assert_called_once()
 
 
@@ -220,7 +219,7 @@ class TestHelperFunctions:
 
     def test_get_models_by_provider(self):
         """Test filtering models by provider."""
-        from src.dashboard.providers import get_models_by_provider, LLMProvider
+        from src.dashboard.providers import LLMProvider, get_models_by_provider
 
         openai_models = get_models_by_provider(LLMProvider.OPENAI)
 
@@ -265,12 +264,12 @@ class TestHelperFunctions:
         """Test Ollama availability check."""
         from src.dashboard.providers import check_ollama_availability
 
-        with patch('src.dashboard.providers.requests.get') as mock:
+        with patch("src.dashboard.providers.requests.get") as mock:
             mock.return_value = MagicMock(status_code=200)
             result = check_ollama_availability()
             assert result is True
 
-        with patch('src.dashboard.providers.requests.get') as mock:
+        with patch("src.dashboard.providers.requests.get") as mock:
             mock.side_effect = Exception("Connection failed")
             result = check_ollama_availability()
             assert result is False

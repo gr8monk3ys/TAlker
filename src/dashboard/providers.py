@@ -10,16 +10,13 @@ Supports:
 - HuggingFace (Local transformers)
 """
 
-import os
 import logging
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+import os
+from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Iterator
 
-from langchain.schema import BaseMessage
-from langchain.callbacks.base import BaseCallbackHandler
 from dotenv import load_dotenv
+from langchain.callbacks.base import BaseCallbackHandler
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -27,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class LLMProvider(Enum):
     """Supported LLM providers."""
+
     OPENAI = "openai"
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
@@ -37,6 +35,7 @@ class LLMProvider(Enum):
 
 class EmbeddingProvider(Enum):
     """Supported embedding providers."""
+
     OPENAI = "openai"
     COHERE = "cohere"
     OLLAMA = "ollama"
@@ -47,6 +46,7 @@ class EmbeddingProvider(Enum):
 @dataclass
 class ModelInfo:
     """Information about a model."""
+
     name: str
     provider: LLMProvider
     context_window: int
@@ -61,6 +61,7 @@ class ModelInfo:
 @dataclass
 class EmbeddingInfo:
     """Information about an embedding model."""
+
     name: str
     provider: EmbeddingProvider
     dimensions: int
@@ -79,7 +80,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0025,
         output_cost_per_1k=0.01,
         supports_functions=True,
-        description="Most capable OpenAI model, multimodal"
+        description="Most capable OpenAI model, multimodal",
     ),
     "gpt-4o-mini": ModelInfo(
         name="gpt-4o-mini",
@@ -88,7 +89,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.00015,
         output_cost_per_1k=0.0006,
         supports_functions=True,
-        description="Fast and affordable, great for most tasks"
+        description="Fast and affordable, great for most tasks",
     ),
     "gpt-3.5-turbo": ModelInfo(
         name="gpt-3.5-turbo",
@@ -97,9 +98,8 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0005,
         output_cost_per_1k=0.0015,
         supports_functions=True,
-        description="Legacy model, fast and cheap"
+        description="Legacy model, fast and cheap",
     ),
-
     # Anthropic
     "claude-3-5-sonnet-20241022": ModelInfo(
         name="claude-3-5-sonnet-20241022",
@@ -108,7 +108,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.003,
         output_cost_per_1k=0.015,
         supports_functions=True,
-        description="Best balance of intelligence and speed"
+        description="Best balance of intelligence and speed",
     ),
     "claude-3-5-haiku-20241022": ModelInfo(
         name="claude-3-5-haiku-20241022",
@@ -117,9 +117,8 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.001,
         output_cost_per_1k=0.005,
         supports_functions=True,
-        description="Fast and affordable Claude model"
+        description="Fast and affordable Claude model",
     ),
-
     # Google
     "gemini-1.5-pro": ModelInfo(
         name="gemini-1.5-pro",
@@ -128,7 +127,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.00125,
         output_cost_per_1k=0.005,
         supports_functions=True,
-        description="Google's most capable model, 2M context"
+        description="Google's most capable model, 2M context",
     ),
     "gemini-1.5-flash": ModelInfo(
         name="gemini-1.5-flash",
@@ -137,9 +136,8 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.000075,
         output_cost_per_1k=0.0003,
         supports_functions=True,
-        description="Fast and efficient Gemini model"
+        description="Fast and efficient Gemini model",
     ),
-
     # Cohere
     "command-r-plus": ModelInfo(
         name="command-r-plus",
@@ -148,7 +146,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0025,
         output_cost_per_1k=0.01,
         supports_functions=True,
-        description="Cohere's most capable model for RAG"
+        description="Cohere's most capable model for RAG",
     ),
     "command-r": ModelInfo(
         name="command-r",
@@ -156,9 +154,8 @@ LLM_MODELS: dict[str, ModelInfo] = {
         context_window=128000,
         input_cost_per_1k=0.00015,
         output_cost_per_1k=0.0006,
-        description="Efficient Cohere model optimized for RAG"
+        description="Efficient Cohere model optimized for RAG",
     ),
-
     # Ollama (Local)
     "llama3.1:8b": ModelInfo(
         name="llama3.1:8b",
@@ -167,7 +164,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Meta's Llama 3.1 8B - great local model"
+        description="Meta's Llama 3.1 8B - great local model",
     ),
     "llama3.1:70b": ModelInfo(
         name="llama3.1:70b",
@@ -176,7 +173,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Meta's Llama 3.1 70B - powerful local model"
+        description="Meta's Llama 3.1 70B - powerful local model",
     ),
     "mistral:7b": ModelInfo(
         name="mistral:7b",
@@ -185,7 +182,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Mistral 7B - efficient local model"
+        description="Mistral 7B - efficient local model",
     ),
     "mixtral:8x7b": ModelInfo(
         name="mixtral:8x7b",
@@ -194,7 +191,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Mixtral 8x7B MoE - powerful local model"
+        description="Mixtral 8x7B MoE - powerful local model",
     ),
     "phi3:medium": ModelInfo(
         name="phi3:medium",
@@ -203,7 +200,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Microsoft Phi-3 Medium - efficient for RAG"
+        description="Microsoft Phi-3 Medium - efficient for RAG",
     ),
     "qwen2.5:7b": ModelInfo(
         name="qwen2.5:7b",
@@ -212,7 +209,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="Alibaba Qwen 2.5 7B - strong multilingual"
+        description="Alibaba Qwen 2.5 7B - strong multilingual",
     ),
     "deepseek-r1:8b": ModelInfo(
         name="deepseek-r1:8b",
@@ -221,7 +218,7 @@ LLM_MODELS: dict[str, ModelInfo] = {
         input_cost_per_1k=0.0,
         output_cost_per_1k=0.0,
         is_local=True,
-        description="DeepSeek R1 8B - reasoning focused"
+        description="DeepSeek R1 8B - reasoning focused",
     ),
 }
 
@@ -232,32 +229,30 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         provider=EmbeddingProvider.OPENAI,
         dimensions=3072,
         cost_per_1k=0.00013,
-        description="Best OpenAI embeddings"
+        description="Best OpenAI embeddings",
     ),
     "text-embedding-3-small": EmbeddingInfo(
         name="text-embedding-3-small",
         provider=EmbeddingProvider.OPENAI,
         dimensions=1536,
         cost_per_1k=0.00002,
-        description="Fast and affordable OpenAI embeddings"
+        description="Fast and affordable OpenAI embeddings",
     ),
-
     # Cohere
     "embed-english-v3.0": EmbeddingInfo(
         name="embed-english-v3.0",
         provider=EmbeddingProvider.COHERE,
         dimensions=1024,
         cost_per_1k=0.0001,
-        description="Cohere English embeddings"
+        description="Cohere English embeddings",
     ),
     "embed-multilingual-v3.0": EmbeddingInfo(
         name="embed-multilingual-v3.0",
         provider=EmbeddingProvider.COHERE,
         dimensions=1024,
         cost_per_1k=0.0001,
-        description="Cohere multilingual embeddings"
+        description="Cohere multilingual embeddings",
     ),
-
     # Ollama (Local)
     "nomic-embed-text": EmbeddingInfo(
         name="nomic-embed-text",
@@ -265,7 +260,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=768,
         cost_per_1k=0.0,
         is_local=True,
-        description="Nomic AI embeddings via Ollama"
+        description="Nomic AI embeddings via Ollama",
     ),
     "mxbai-embed-large": EmbeddingInfo(
         name="mxbai-embed-large",
@@ -273,7 +268,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=1024,
         cost_per_1k=0.0,
         is_local=True,
-        description="MixedBread AI large embeddings"
+        description="MixedBread AI large embeddings",
     ),
     "all-minilm": EmbeddingInfo(
         name="all-minilm",
@@ -281,9 +276,8 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=384,
         cost_per_1k=0.0,
         is_local=True,
-        description="Sentence Transformers MiniLM via Ollama"
+        description="Sentence Transformers MiniLM via Ollama",
     ),
-
     # HuggingFace (Local)
     "BAAI/bge-large-en-v1.5": EmbeddingInfo(
         name="BAAI/bge-large-en-v1.5",
@@ -291,7 +285,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=1024,
         cost_per_1k=0.0,
         is_local=True,
-        description="BGE Large - top performing open embeddings"
+        description="BGE Large - top performing open embeddings",
     ),
     "sentence-transformers/all-mpnet-base-v2": EmbeddingInfo(
         name="sentence-transformers/all-mpnet-base-v2",
@@ -299,9 +293,8 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=768,
         cost_per_1k=0.0,
         is_local=True,
-        description="MPNet - great general purpose embeddings"
+        description="MPNet - great general purpose embeddings",
     ),
-
     # FastEmbed (Local, optimized)
     "BAAI/bge-small-en-v1.5": EmbeddingInfo(
         name="BAAI/bge-small-en-v1.5",
@@ -309,7 +302,7 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
         dimensions=384,
         cost_per_1k=0.0,
         is_local=True,
-        description="BGE Small via FastEmbed - fast and efficient"
+        description="BGE Small via FastEmbed - fast and efficient",
     ),
 }
 
@@ -317,10 +310,11 @@ EMBEDDING_MODELS: dict[str, EmbeddingInfo] = {
 @dataclass
 class ProviderConfig:
     """Configuration for a specific provider."""
+
     llm_model: str = "gpt-4o"
     embedding_model: str = "text-embedding-3-large"
     temperature: float = 0.1
-    max_tokens: Optional[int] = None
+    max_tokens: int | None = None
     streaming: bool = True
 
     # Provider-specific settings
@@ -334,8 +328,7 @@ class ProviderConfig:
     def get_embedding_info(self) -> EmbeddingInfo:
         """Get info about the configured embedding model."""
         return EMBEDDING_MODELS.get(
-            self.embedding_model,
-            EMBEDDING_MODELS["text-embedding-3-large"]
+            self.embedding_model, EMBEDDING_MODELS["text-embedding-3-large"]
         )
 
 
@@ -345,28 +338,22 @@ class TokenTracker:
     def __init__(self):
         self.usage: dict[str, dict] = {}
 
-    def track(
-        self,
-        model: str,
-        input_tokens: int,
-        output_tokens: int
-    ) -> dict:
+    def track(self, model: str, input_tokens: int, output_tokens: int) -> dict:
         """Track token usage for a model."""
         if model not in self.usage:
             self.usage[model] = {
                 "input_tokens": 0,
                 "output_tokens": 0,
                 "total_cost": 0.0,
-                "calls": 0
+                "calls": 0,
             }
 
         model_info = LLM_MODELS.get(model)
         cost = 0.0
         if model_info:
-            cost = (
-                (input_tokens / 1000) * model_info.input_cost_per_1k +
-                (output_tokens / 1000) * model_info.output_cost_per_1k
-            )
+            cost = (input_tokens / 1000) * model_info.input_cost_per_1k + (
+                output_tokens / 1000
+            ) * model_info.output_cost_per_1k
 
         self.usage[model]["input_tokens"] += input_tokens
         self.usage[model]["output_tokens"] += output_tokens
@@ -376,7 +363,7 @@ class TokenTracker:
         return {
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
-            "cost": cost
+            "cost": cost,
         }
 
     def get_total_cost(self) -> float:
@@ -388,7 +375,7 @@ class TokenTracker:
         return {
             "by_model": self.usage,
             "total_cost": self.get_total_cost(),
-            "total_calls": sum(m["calls"] for m in self.usage.values())
+            "total_calls": sum(m["calls"] for m in self.usage.values()),
         }
 
     def reset(self):
@@ -401,8 +388,7 @@ class LLMFactory:
 
     @staticmethod
     def create(
-        config: ProviderConfig,
-        callbacks: Optional[list[BaseCallbackHandler]] = None
+        config: ProviderConfig, callbacks: list[BaseCallbackHandler] | None = None
     ):
         """Create an LLM instance based on configuration."""
         model_info = config.get_llm_info()
@@ -419,38 +405,29 @@ class LLMFactory:
 
         if provider == LLMProvider.OPENAI:
             from langchain_openai import ChatOpenAI
-            return ChatOpenAI(
-                model=config.llm_model,
-                **common_kwargs
-            )
+
+            return ChatOpenAI(model=config.llm_model, **common_kwargs)
 
         elif provider == LLMProvider.ANTHROPIC:
             from langchain_anthropic import ChatAnthropic
-            return ChatAnthropic(
-                model=config.llm_model,
-                **common_kwargs
-            )
+
+            return ChatAnthropic(model=config.llm_model, **common_kwargs)
 
         elif provider == LLMProvider.GOOGLE:
             from langchain_google_genai import ChatGoogleGenerativeAI
-            return ChatGoogleGenerativeAI(
-                model=config.llm_model,
-                **common_kwargs
-            )
+
+            return ChatGoogleGenerativeAI(model=config.llm_model, **common_kwargs)
 
         elif provider == LLMProvider.COHERE:
             from langchain_cohere import ChatCohere
-            return ChatCohere(
-                model=config.llm_model,
-                **common_kwargs
-            )
+
+            return ChatCohere(model=config.llm_model, **common_kwargs)
 
         elif provider == LLMProvider.OLLAMA:
             from langchain_ollama import ChatOllama
+
             return ChatOllama(
-                model=config.llm_model,
-                base_url=config.ollama_base_url,
-                **common_kwargs
+                model=config.llm_model, base_url=config.ollama_base_url, **common_kwargs
             )
 
         elif provider == LLMProvider.HUGGINGFACE:
@@ -459,14 +436,13 @@ class LLMFactory:
 
             tokenizer = AutoTokenizer.from_pretrained(config.llm_model)
             model = AutoModelForCausalLM.from_pretrained(
-                config.llm_model,
-                device_map=config.huggingface_device
+                config.llm_model, device_map=config.huggingface_device
             )
             pipe = pipeline(
                 "text-generation",
                 model=model,
                 tokenizer=tokenizer,
-                max_new_tokens=config.max_tokens or 512
+                max_new_tokens=config.max_tokens or 512,
             )
             hf_pipeline = HuggingFacePipeline(pipeline=pipe)
             return ChatHuggingFace(llm=hf_pipeline)
@@ -486,37 +462,36 @@ class EmbeddingFactory:
 
         if provider == EmbeddingProvider.OPENAI:
             from langchain_openai import OpenAIEmbeddings
+
             return OpenAIEmbeddings(
-                model=config.embedding_model,
-                dimensions=embedding_info.dimensions
+                model=config.embedding_model, dimensions=embedding_info.dimensions
             )
 
         elif provider == EmbeddingProvider.COHERE:
             from langchain_cohere import CohereEmbeddings
-            return CohereEmbeddings(
-                model=config.embedding_model
-            )
+
+            return CohereEmbeddings(model=config.embedding_model)
 
         elif provider == EmbeddingProvider.OLLAMA:
             from langchain_ollama import OllamaEmbeddings
+
             return OllamaEmbeddings(
-                model=config.embedding_model,
-                base_url=config.ollama_base_url
+                model=config.embedding_model, base_url=config.ollama_base_url
             )
 
         elif provider == EmbeddingProvider.HUGGINGFACE:
             from langchain_huggingface import HuggingFaceEmbeddings
+
             return HuggingFaceEmbeddings(
                 model_name=config.embedding_model,
                 model_kwargs={"device": config.huggingface_device},
-                encode_kwargs={"normalize_embeddings": True}
+                encode_kwargs={"normalize_embeddings": True},
             )
 
         elif provider == EmbeddingProvider.FASTEMBED:
             from langchain_community.embeddings import FastEmbedEmbeddings
-            return FastEmbedEmbeddings(
-                model_name=config.embedding_model
-            )
+
+            return FastEmbedEmbeddings(model_name=config.embedding_model)
 
         else:
             raise ValueError(f"Unsupported embedding provider: {provider}")
@@ -526,18 +501,18 @@ def check_ollama_availability(base_url: str = "http://localhost:11434") -> bool:
     """Check if Ollama is running and available."""
     try:
         import requests
+
         response = requests.get(f"{base_url}/api/tags", timeout=2)
         return response.status_code == 200
     except Exception:
         return False
 
 
-def get_available_ollama_models(
-    base_url: str = "http://localhost:11434"
-) -> list[str]:
+def get_available_ollama_models(base_url: str = "http://localhost:11434") -> list[str]:
     """Get list of models available in local Ollama instance."""
     try:
         import requests
+
         response = requests.get(f"{base_url}/api/tags", timeout=5)
         if response.status_code == 200:
             data = response.json()

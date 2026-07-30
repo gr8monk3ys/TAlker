@@ -26,23 +26,23 @@ def sample_documents():
     return [
         Document(
             page_content="Machine learning is a subset of artificial intelligence.",
-            metadata={"source": "lecture1.pdf", "page": 1}
+            metadata={"source": "lecture1.pdf", "page": 1},
         ),
         Document(
             page_content="The final exam is worth 40% of your grade.",
-            metadata={"source": "syllabus.pdf", "page": 5}
+            metadata={"source": "syllabus.pdf", "page": 5},
         ),
         Document(
             page_content="Office hours are on Tuesdays from 2-4 PM.",
-            metadata={"source": "syllabus.pdf", "page": 2}
+            metadata={"source": "syllabus.pdf", "page": 2},
         ),
         Document(
             page_content="Neural networks consist of layers of interconnected nodes.",
-            metadata={"source": "lecture2.pdf", "page": 3}
+            metadata={"source": "lecture2.pdf", "page": 3},
         ),
         Document(
             page_content="Assignments must be submitted through the online portal.",
-            metadata={"source": "syllabus.pdf", "page": 6}
+            metadata={"source": "syllabus.pdf", "page": 6},
         ),
     ]
 
@@ -89,7 +89,7 @@ Key concepts:
 @pytest.fixture
 def mock_openai_embeddings():
     """Mock OpenAI embeddings for testing without API calls."""
-    with patch('src.dashboard.llm.OpenAIEmbeddings') as mock:
+    with patch("src.dashboard.llm.OpenAIEmbeddings") as mock:
         mock_instance = MagicMock()
         # Return consistent fake embeddings
         mock_instance.embed_documents.return_value = [[0.1] * 1536 for _ in range(10)]
@@ -101,7 +101,7 @@ def mock_openai_embeddings():
 @pytest.fixture
 def mock_openai_chat():
     """Mock OpenAI chat for testing without API calls."""
-    with patch('src.dashboard.llm.ChatOpenAI') as mock:
+    with patch("src.dashboard.llm.ChatOpenAI") as mock:
         mock_instance = MagicMock()
         mock_instance.invoke.return_value = MagicMock(
             content="This is a test response about the course materials."
@@ -113,7 +113,7 @@ def mock_openai_chat():
 @pytest.fixture
 def mock_cross_encoder():
     """Mock cross-encoder for testing without model loading."""
-    with patch('src.dashboard.llm.CrossEncoder') as mock:
+    with patch("src.dashboard.llm.CrossEncoder") as mock:
         mock_instance = MagicMock()
         mock_instance.predict.return_value = [0.9, 0.7, 0.5, 0.3, 0.1]
         mock.return_value = mock_instance

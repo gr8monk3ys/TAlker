@@ -9,16 +9,15 @@ Implements comprehensive evaluation metrics for RAG systems:
 - Context Relevancy: How relevant are the retrieved contexts?
 """
 
+import json
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
-import json
 from datetime import datetime
 from pathlib import Path
 
-from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
+from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 
 load_dotenv()
 
@@ -28,15 +27,17 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EvaluationSample:
     """Single evaluation sample."""
+
     question: str
     answer: str
     contexts: list[str]
-    ground_truth: Optional[str] = None
+    ground_truth: str | None = None
 
 
 @dataclass
 class EvaluationResult:
     """Results from a single evaluation."""
+
     faithfulness: float
     answer_relevancy: float
     context_precision: float
@@ -47,35 +48,36 @@ class EvaluationResult:
     def overall_score(self) -> float:
         """Calculate weighted overall score."""
         weights = {
-            'faithfulness': 0.25,
-            'answer_relevancy': 0.25,
-            'context_precision': 0.20,
-            'context_recall': 0.15,
-            'context_relevancy': 0.15
+            "faithfulness": 0.25,
+            "answer_relevancy": 0.25,
+            "context_precision": 0.20,
+            "context_recall": 0.15,
+            "context_relevancy": 0.15,
         }
         return (
-            self.faithfulness * weights['faithfulness'] +
-            self.answer_relevancy * weights['answer_relevancy'] +
-            self.context_precision * weights['context_precision'] +
-            self.context_recall * weights['context_recall'] +
-            self.context_relevancy * weights['context_relevancy']
+            self.faithfulness * weights["faithfulness"]
+            + self.answer_relevancy * weights["answer_relevancy"]
+            + self.context_precision * weights["context_precision"]
+            + self.context_recall * weights["context_recall"]
+            + self.context_relevancy * weights["context_relevancy"]
         )
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
-            'faithfulness': self.faithfulness,
-            'answer_relevancy': self.answer_relevancy,
-            'context_precision': self.context_precision,
-            'context_recall': self.context_recall,
-            'context_relevancy': self.context_relevancy,
-            'overall_score': self.overall_score
+            "faithfulness": self.faithfulness,
+            "answer_relevancy": self.answer_relevancy,
+            "context_precision": self.context_precision,
+            "context_recall": self.context_recall,
+            "context_relevancy": self.context_relevancy,
+            "overall_score": self.overall_score,
         }
 
 
 @dataclass
 class EvaluationReport:
     """Complete evaluation report."""
+
     samples: list[EvaluationSample]
     results: list[EvaluationResult]
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
@@ -93,17 +95,17 @@ class EvaluationReport:
             answer_relevancy=sum(r.answer_relevancy for r in self.results) / n,
             context_precision=sum(r.context_precision for r in self.results) / n,
             context_recall=sum(r.context_recall for r in self.results) / n,
-            context_relevancy=sum(r.context_relevancy for r in self.results) / n
+            context_relevancy=sum(r.context_relevancy for r in self.results) / n,
         )
 
     def to_dict(self) -> dict:
         """Convert report to dictionary."""
         return {
-            'timestamp': self.timestamp,
-            'metadata': self.metadata,
-            'num_samples': len(self.samples),
-            'average_scores': self.average_scores.to_dict(),
-            'individual_results': [r.to_dict() for r in self.results]
+            "timestamp": self.timestamp,
+            "metadata": self.metadata,
+            "num_samples": len(self.samples),
+            "average_scores": self.average_scores.to_dict(),
+            "individual_results": [r.to_dict() for r in self.results],
         }
 
 
@@ -138,7 +140,7 @@ Score the faithfulness from 0 to 1:
 Provide your score as a JSON object: {{"score": <float>, "reasoning": "<explanation>"}}
 
 Evaluation:""",
-            input_variables=["context", "answer"]
+            input_variables=["context", "answer"],
         )
 
         self.relevancy_prompt = PromptTemplate(
@@ -158,7 +160,7 @@ Score the answer relevancy from 0 to 1:
 Provide your score as a JSON object: {{"score": <float>, "reasoning": "<explanation>"}}
 
 Evaluation:""",
-            input_variables=["question", "answer"]
+            input_variables=["question", "answer"],
         )
 
         self.context_precision_prompt = PromptTemplate(
@@ -181,7 +183,7 @@ Score context precision from 0 to 1:
 Provide your score as a JSON object: {{"score": <float>, "reasoning": "<explanation>"}}
 
 Evaluation:""",
-            input_variables=["question", "contexts", "ground_truth"]
+            input_variables=["question", "contexts", "ground_truth"],
         )
 
         self.context_recall_prompt = PromptTemplate(
@@ -204,7 +206,7 @@ Score context recall from 0 to 1:
 Provide your score as a JSON object: {{"score": <float>, "reasoning": "<explanation>"}}
 
 Evaluation:""",
-            input_variables=["question", "context", "ground_truth"]
+            input_variables=["question", "context", "ground_truth"],
         )
 
         self.context_relevancy_prompt = PromptTemplate(
@@ -224,20 +226,20 @@ Score context relevancy from 0 to 1:
 Provide your score as a JSON object: {{"score": <float>, "reasoning": "<explanation>"}}
 
 Evaluation:""",
-            input_variables=["question", "contexts"]
+            input_variables=["question", "contexts"],
         )
 
     def _parse_score(self, response: str) -> tuple[float, str]:
         """Parse score from LLM response."""
         try:
             # Try to extract JSON from response
-            start = response.find('{')
-            end = response.rfind('}') + 1
+            start = response.find("{")
+            end = response.rfind("}") + 1
             if start != -1 and end > start:
                 json_str = response[start:end]
                 data = json.loads(json_str)
-                score = float(data.get('score', 0.5))
-                reasoning = data.get('reasoning', '')
+                score = float(data.get("score", 0.5))
+                reasoning = data.get("reasoning", "")
                 return min(1.0, max(0.0, score)), reasoning
         except (json.JSONDecodeError, ValueError) as e:
             logger.warning(f"Failed to parse score: {e}")
@@ -247,10 +249,7 @@ Evaluation:""",
     def evaluate_faithfulness(self, sample: EvaluationSample) -> float:
         """Evaluate faithfulness of answer to context."""
         context = "\n\n".join(sample.contexts)
-        prompt = self.faithfulness_prompt.format(
-            context=context,
-            answer=sample.answer
-        )
+        prompt = self.faithfulness_prompt.format(context=context, answer=sample.answer)
 
         response = self.llm.invoke(prompt).content
         score, _ = self._parse_score(response)
@@ -259,8 +258,7 @@ Evaluation:""",
     def evaluate_answer_relevancy(self, sample: EvaluationSample) -> float:
         """Evaluate relevancy of answer to question."""
         prompt = self.relevancy_prompt.format(
-            question=sample.question,
-            answer=sample.answer
+            question=sample.question, answer=sample.answer
         )
 
         response = self.llm.invoke(prompt).content
@@ -269,15 +267,14 @@ Evaluation:""",
 
     def evaluate_context_precision(self, sample: EvaluationSample) -> float:
         """Evaluate if relevant contexts are ranked higher."""
-        contexts_text = "\n\n".join([
-            f"[Context {i+1}]: {ctx}"
-            for i, ctx in enumerate(sample.contexts)
-        ])
+        contexts_text = "\n\n".join(
+            [f"[Context {i + 1}]: {ctx}" for i, ctx in enumerate(sample.contexts)]
+        )
 
         prompt = self.context_precision_prompt.format(
             question=sample.question,
             contexts=contexts_text,
-            ground_truth=sample.ground_truth or "Not available"
+            ground_truth=sample.ground_truth or "Not available",
         )
 
         response = self.llm.invoke(prompt).content
@@ -290,7 +287,7 @@ Evaluation:""",
         prompt = self.context_recall_prompt.format(
             question=sample.question,
             context=context,
-            ground_truth=sample.ground_truth or "Not available"
+            ground_truth=sample.ground_truth or "Not available",
         )
 
         response = self.llm.invoke(prompt).content
@@ -299,14 +296,12 @@ Evaluation:""",
 
     def evaluate_context_relevancy(self, sample: EvaluationSample) -> float:
         """Evaluate relevancy of retrieved contexts."""
-        contexts_text = "\n\n".join([
-            f"[Context {i+1}]: {ctx}"
-            for i, ctx in enumerate(sample.contexts)
-        ])
+        contexts_text = "\n\n".join(
+            [f"[Context {i + 1}]: {ctx}" for i, ctx in enumerate(sample.contexts)]
+        )
 
         prompt = self.context_relevancy_prompt.format(
-            question=sample.question,
-            contexts=contexts_text
+            question=sample.question, contexts=contexts_text
         )
 
         response = self.llm.invoke(prompt).content
@@ -322,37 +317,33 @@ Evaluation:""",
             answer_relevancy=self.evaluate_answer_relevancy(sample),
             context_precision=self.evaluate_context_precision(sample),
             context_recall=self.evaluate_context_recall(sample),
-            context_relevancy=self.evaluate_context_relevancy(sample)
+            context_relevancy=self.evaluate_context_relevancy(sample),
         )
 
     def evaluate_batch(
-        self,
-        samples: list[EvaluationSample],
-        metadata: Optional[dict] = None
+        self, samples: list[EvaluationSample], metadata: dict | None = None
     ) -> EvaluationReport:
         """Evaluate multiple samples and generate report."""
         results = []
 
         for i, sample in enumerate(samples):
-            logger.info(f"Evaluating sample {i+1}/{len(samples)}")
+            logger.info(f"Evaluating sample {i + 1}/{len(samples)}")
             try:
                 result = self.evaluate_sample(sample)
                 results.append(result)
             except Exception as e:
-                logger.error(f"Failed to evaluate sample {i+1}: {e}")
+                logger.error(f"Failed to evaluate sample {i + 1}: {e}")
                 # Add neutral scores on failure
                 results.append(EvaluationResult(0.5, 0.5, 0.5, 0.5, 0.5))
 
         return EvaluationReport(
-            samples=samples,
-            results=results,
-            metadata=metadata or {}
+            samples=samples, results=results, metadata=metadata or {}
         )
 
     def save_report(self, report: EvaluationReport, path: Path) -> None:
         """Save evaluation report to JSON file."""
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             json.dump(report.to_dict(), f, indent=2)
         logger.info(f"Saved evaluation report to {path}")
 
@@ -369,14 +360,12 @@ class RAGEvaluationPipeline:
     Integrates with LlmChain for automatic evaluation.
     """
 
-    def __init__(self, llm_chain, evaluator: Optional[RAGASEvaluator] = None):
+    def __init__(self, llm_chain, evaluator: RAGASEvaluator | None = None):
         self.llm_chain = llm_chain
         self.evaluator = evaluator or RAGASEvaluator()
 
     def create_sample_from_query(
-        self,
-        question: str,
-        ground_truth: Optional[str] = None
+        self, question: str, ground_truth: str | None = None
     ) -> EvaluationSample:
         """Create evaluation sample by querying the RAG system."""
         # Get response and sources
@@ -389,20 +378,18 @@ class RAGEvaluationPipeline:
             question=question,
             answer=response.answer,
             contexts=contexts,
-            ground_truth=ground_truth
+            ground_truth=ground_truth,
         )
 
     def evaluate_questions(
-        self,
-        questions: list[str],
-        ground_truths: Optional[list[str]] = None
+        self, questions: list[str], ground_truths: list[str] | None = None
     ) -> EvaluationReport:
         """Evaluate RAG system on a list of questions."""
         if ground_truths is None:
             ground_truths = [None] * len(questions)
 
         samples = []
-        for q, gt in zip(questions, ground_truths):
+        for q, gt in zip(questions, ground_truths, strict=False):
             try:
                 sample = self.create_sample_from_query(q, gt)
                 samples.append(sample)
@@ -410,21 +397,19 @@ class RAGEvaluationPipeline:
                 logger.error(f"Failed to create sample for '{q}': {e}")
 
         metadata = {
-            'rag_config': {
-                'llm_model': self.llm_chain.config.llm_model,
-                'embedding_model': self.llm_chain.config.embedding_model,
-                'chunk_size': self.llm_chain.config.chunk_size,
-                'initial_k': self.llm_chain.config.initial_k,
-                'final_k': self.llm_chain.config.final_k,
+            "rag_config": {
+                "llm_model": self.llm_chain.config.llm_model,
+                "embedding_model": self.llm_chain.config.embedding_model,
+                "chunk_size": self.llm_chain.config.chunk_size,
+                "initial_k": self.llm_chain.config.initial_k,
+                "final_k": self.llm_chain.config.final_k,
             }
         }
 
         return self.evaluator.evaluate_batch(samples, metadata)
 
     def run_evaluation_suite(
-        self,
-        test_file: Optional[Path] = None,
-        output_dir: Optional[Path] = None
+        self, test_file: Path | None = None, output_dir: Path | None = None
     ) -> EvaluationReport:
         """Run complete evaluation suite."""
         # Default test questions if no file provided
@@ -444,8 +429,8 @@ class RAGEvaluationPipeline:
             try:
                 with open(test_file) as f:
                     data = json.load(f)
-                    questions = data.get('questions', default_questions)
-                    ground_truths = data.get('ground_truths')
+                    questions = data.get("questions", default_questions)
+                    ground_truths = data.get("ground_truths")
             except Exception as e:
                 logger.warning(f"Failed to load test file: {e}")
 
@@ -454,7 +439,10 @@ class RAGEvaluationPipeline:
 
         # Save report
         if output_dir:
-            output_path = output_dir / f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            output_path = (
+                output_dir
+                / f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
             self.evaluator.save_report(report, output_path)
 
         return report
@@ -490,8 +478,6 @@ if __name__ == "__main__":
     pipeline = RAGEvaluationPipeline(llm_chain)
 
     print("Running evaluation suite...")
-    report = pipeline.run_evaluation_suite(
-        output_dir=Path("data/evaluations")
-    )
+    report = pipeline.run_evaluation_suite(output_dir=Path("data/evaluations"))
 
     print_evaluation_report(report)

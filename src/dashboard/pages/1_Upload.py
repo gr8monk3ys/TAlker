@@ -1,12 +1,15 @@
 import os
 import re
-import streamlit as st
 from datetime import datetime
-import PyPDF2
 from io import BytesIO
 
+import PyPDF2
+import streamlit as st
+
 # Set page config
-st.set_page_config(page_title="Upload", page_icon="📤", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(
+    page_title="Upload", page_icon="📤", layout="wide", initial_sidebar_state="expanded"
+)
 
 # Initialize directory path
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data")
@@ -15,21 +18,23 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # Security constants
 MAX_FILE_SIZE_MB = 50
 MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
-ALLOWED_EXTENSIONS = {'.txt', '.pdf', '.csv', '.md'}
+ALLOWED_EXTENSIONS = {".txt", ".pdf", ".csv", ".md"}
+
 
 def sanitize_filename(filename: str) -> str:
     """Sanitize filename to prevent path traversal and other security issues."""
     # Get only the basename (remove any directory components)
     filename = os.path.basename(filename)
     # Remove any null bytes
-    filename = filename.replace('\x00', '')
+    filename = filename.replace("\x00", "")
     # Remove or replace dangerous characters
-    filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    filename = re.sub(r'[<>:"/\\|?*]', "_", filename)
     # Limit length
     if len(filename) > 255:
         name, ext = os.path.splitext(filename)
-        filename = name[:255-len(ext)] + ext
+        filename = name[: 255 - len(ext)] + ext
     return filename
+
 
 def validate_file_path(filepath: str) -> bool:
     """Validate that the file path is within DATA_DIR to prevent path traversal."""
@@ -37,12 +42,16 @@ def validate_file_path(filepath: str) -> bool:
     abs_filepath = os.path.abspath(filepath)
     abs_data_dir = os.path.abspath(DATA_DIR)
     # Check if the file path starts with the data directory
-    return abs_filepath.startswith(abs_data_dir + os.sep) or abs_filepath == abs_data_dir
+    return (
+        abs_filepath.startswith(abs_data_dir + os.sep) or abs_filepath == abs_data_dir
+    )
+
 
 def initialize_files_list():
     """Initialize the list of files in session state."""
     if "files" not in st.session_state:
         st.session_state["files"] = list_files(DATA_DIR)
+
 
 @st.cache_data
 def list_files(directory):
@@ -53,13 +62,16 @@ def list_files(directory):
         if os.path.isfile(file_path):
             size = os.path.getsize(file_path)
             modified = datetime.fromtimestamp(os.path.getmtime(file_path))
-            files.append({
-                "name": f,
-                "size": f"{size / 1024:.2f} KB",
-                "modified": modified.strftime("%Y-%m-%d %H:%M:%S"),
-                "type": os.path.splitext(f)[1].lower()
-            })
+            files.append(
+                {
+                    "name": f,
+                    "size": f"{size / 1024:.2f} KB",
+                    "modified": modified.strftime("%Y-%m-%d %H:%M:%S"),
+                    "type": os.path.splitext(f)[1].lower(),
+                }
+            )
     return files
+
 
 def process_pdf(uploaded_file):
     """Extract text from PDF and save as TXT."""
@@ -86,6 +98,7 @@ def process_pdf(uploaded_file):
         st.error(f"Error processing PDF: {str(e)}")
         return False
 
+
 def save_file(uploaded_file):
     """Save an uploaded file with security validations."""
     if uploaded_file is not None:
@@ -99,7 +112,9 @@ def save_file(uploaded_file):
             # Validate file extension
             _, ext = os.path.splitext(safe_name)
             if ext.lower() not in ALLOWED_EXTENSIONS:
-                st.error(f"File type '{ext}' not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}")
+                st.error(
+                    f"File type '{ext}' not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+                )
                 return
 
             # Validate file size
@@ -130,6 +145,7 @@ def save_file(uploaded_file):
             st.session_state["files"] = list_files(DATA_DIR)
         except Exception as e:
             st.error(f"Error saving file: {str(e)}")
+
 
 def delete_file(filename):
     """Delete a file with security validations."""
@@ -162,6 +178,7 @@ def delete_file(filename):
     except Exception as e:
         st.error(f"Error deleting file: {str(e)}")
 
+
 # Initialize files list
 initialize_files_list()
 
@@ -183,7 +200,7 @@ uploaded_file = st.file_uploader(
     "Choose files to upload",
     type=["txt", "pdf", "csv", "md"],
     help="Upload your course materials here. PDFs will be automatically converted to text for better processing.",
-    accept_multiple_files=False
+    accept_multiple_files=False,
 )
 
 if uploaded_file is not None:
@@ -191,18 +208,18 @@ if uploaded_file is not None:
     file_details = {
         "Filename": uploaded_file.name,
         "File type": uploaded_file.type,
-        "File size": f"{uploaded_file.size / 1024:.2f} KB"
+        "File size": f"{uploaded_file.size / 1024:.2f} KB",
     }
     for key, value in file_details.items():
         st.write(f"- {key}: {value}")
-    
+
     if st.button("Save File", type="primary"):
         save_file(uploaded_file)
 
 # Display existing files
 if st.session_state["files"]:
     st.write("### Uploaded Files")
-    
+
     # Create a table of files
     files_data = []
     for file in st.session_state["files"]:
@@ -210,15 +227,17 @@ if st.session_state["files"]:
         with col1:
             st.write(f"📄 {file['name']}")
         with col2:
-            st.write(file['size'])
+            st.write(file["size"])
         with col3:
-            st.write(file['modified'])
+            st.write(file["modified"])
         with col4:
-            if st.button("🗑️ Delete", key=file['name']):
-                delete_file(file['name'])
+            if st.button("🗑️ Delete", key=file["name"]):
+                delete_file(file["name"])
 
     # Show total context size
-    total_size = sum([float(f['size'].replace(' KB', '')) for f in st.session_state["files"]])
+    total_size = sum(
+        [float(f["size"].replace(" KB", "")) for f in st.session_state["files"]]
+    )
     st.info(f"📚 Total context size: {total_size:.2f} KB")
 else:
     st.warning("No files uploaded yet. Upload some course materials to get started!")

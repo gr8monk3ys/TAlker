@@ -2,27 +2,25 @@
 RAGAS Evaluation Dashboard for measuring RAG system quality.
 """
 
-import streamlit as st
-from pathlib import Path
 import json
-import plotly.graph_objects as go
-import plotly.express as px
-import pandas as pd
 from datetime import datetime
+from pathlib import Path
 
-from src.dashboard.llm import LlmChain
+import pandas as pd
+import plotly.graph_objects as go
+import streamlit as st
+
 from src.dashboard.evaluation import (
     RAGASEvaluator,
     RAGEvaluationPipeline,
-    EvaluationSample,
-    print_evaluation_report
 )
+from src.dashboard.llm import LlmChain
 
 st.set_page_config(
     page_title="RAG Evaluation",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 st.title("📊 RAGAS Evaluation Dashboard")
@@ -49,7 +47,7 @@ with st.sidebar:
     eval_model = st.selectbox(
         "Evaluation Model",
         ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
-        help="Model used for LLM-as-judge evaluation"
+        help="Model used for LLM-as-judge evaluation",
     )
 
     st.markdown("### Quick Evaluation")
@@ -59,10 +57,7 @@ with st.sidebar:
         with st.spinner("Running evaluation... This may take a few minutes."):
             try:
                 evaluator = RAGASEvaluator(model=eval_model)
-                pipeline = RAGEvaluationPipeline(
-                    st.session_state.llm_chain,
-                    evaluator
-                )
+                pipeline = RAGEvaluationPipeline(st.session_state.llm_chain, evaluator)
 
                 # Default test questions
                 test_questions = [
@@ -84,7 +79,10 @@ with st.sidebar:
                 # Save report
                 output_dir = Path("data/evaluations")
                 output_dir.mkdir(parents=True, exist_ok=True)
-                output_path = output_dir / f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                output_path = (
+                    output_dir
+                    / f"evaluation_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+                )
                 evaluator.save_report(report, output_path)
 
                 st.success(f"Evaluation complete! Report saved to {output_path}")
@@ -103,26 +101,28 @@ with tab1:
         # Overall score
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=avg.overall_score * 100,
-                title={'text': "Overall Score"},
-                domain={'x': [0, 1], 'y': [0, 1]},
-                gauge={
-                    'axis': {'range': [0, 100]},
-                    'bar': {'color': "#667eea"},
-                    'steps': [
-                        {'range': [0, 40], 'color': "#ffcccb"},
-                        {'range': [40, 70], 'color': "#fffacd"},
-                        {'range': [70, 100], 'color': "#90EE90"}
-                    ],
-                    'threshold': {
-                        'line': {'color': "red", 'width': 4},
-                        'thickness': 0.75,
-                        'value': 70
-                    }
-                }
-            ))
+            fig = go.Figure(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=avg.overall_score * 100,
+                    title={"text": "Overall Score"},
+                    domain={"x": [0, 1], "y": [0, 1]},
+                    gauge={
+                        "axis": {"range": [0, 100]},
+                        "bar": {"color": "#667eea"},
+                        "steps": [
+                            {"range": [0, 40], "color": "#ffcccb"},
+                            {"range": [40, 70], "color": "#fffacd"},
+                            {"range": [70, 100], "color": "#90EE90"},
+                        ],
+                        "threshold": {
+                            "line": {"color": "red", "width": 4},
+                            "thickness": 0.75,
+                            "value": 70,
+                        },
+                    },
+                )
+            )
             fig.update_layout(height=300)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -138,64 +138,84 @@ with tab1:
             ("Context Relevancy", avg.context_relevancy),
         ]
 
-        for col, (name, value) in zip([col1, col2, col3, col4, col5], metrics):
+        for col, (name, value) in zip(
+            [col1, col2, col3, col4, col5], metrics, strict=False
+        ):
             with col:
                 delta_color = "normal" if value >= 0.7 else "inverse"
                 st.metric(
                     name,
                     f"{value:.1%}",
                     delta=f"{'Good' if value >= 0.7 else 'Needs Work'}",
-                    delta_color=delta_color
+                    delta_color=delta_color,
                 )
 
         # Radar chart
         st.markdown("### Performance Radar")
-        categories = ['Faithfulness', 'Answer\nRelevancy', 'Context\nPrecision',
-                      'Context\nRecall', 'Context\nRelevancy']
-        values = [avg.faithfulness, avg.answer_relevancy, avg.context_precision,
-                  avg.context_recall, avg.context_relevancy]
+        categories = [
+            "Faithfulness",
+            "Answer\nRelevancy",
+            "Context\nPrecision",
+            "Context\nRecall",
+            "Context\nRelevancy",
+        ]
+        values = [
+            avg.faithfulness,
+            avg.answer_relevancy,
+            avg.context_precision,
+            avg.context_recall,
+            avg.context_relevancy,
+        ]
 
         fig = go.Figure()
-        fig.add_trace(go.Scatterpolar(
-            r=values + [values[0]],  # Close the polygon
-            theta=categories + [categories[0]],
-            fill='toself',
-            name='Current',
-            line_color='#667eea',
-            fillcolor='rgba(102, 126, 234, 0.3)'
-        ))
+        fig.add_trace(
+            go.Scatterpolar(
+                r=values + [values[0]],  # Close the polygon
+                theta=categories + [categories[0]],
+                fill="toself",
+                name="Current",
+                line_color="#667eea",
+                fillcolor="rgba(102, 126, 234, 0.3)",
+            )
+        )
 
         # Add target line
-        fig.add_trace(go.Scatterpolar(
-            r=[0.7] * 6,
-            theta=categories + [categories[0]],
-            fill='toself',
-            name='Target (70%)',
-            line_color='green',
-            fillcolor='rgba(0, 255, 0, 0.1)',
-            line_dash='dash'
-        ))
+        fig.add_trace(
+            go.Scatterpolar(
+                r=[0.7] * 6,
+                theta=categories + [categories[0]],
+                fill="toself",
+                name="Target (70%)",
+                line_color="green",
+                fillcolor="rgba(0, 255, 0, 0.1)",
+                line_dash="dash",
+            )
+        )
 
         fig.update_layout(
-            polar=dict(radialaxis=dict(visible=True, range=[0, 1])),
+            polar={"radialaxis": {"visible": True, "range": [0, 1]}},
             showlegend=True,
-            height=400
+            height=400,
         )
         st.plotly_chart(fig, use_container_width=True)
 
         # Per-question results
         st.markdown("### Per-Question Results")
         results_data = []
-        for i, (sample, result) in enumerate(zip(report.samples, report.results)):
-            results_data.append({
-                'Question': sample.question[:50] + '...',
-                'Faithfulness': result.faithfulness,
-                'Answer Rel.': result.answer_relevancy,
-                'Context Prec.': result.context_precision,
-                'Context Rec.': result.context_recall,
-                'Context Rel.': result.context_relevancy,
-                'Overall': result.overall_score
-            })
+        for _i, (sample, result) in enumerate(
+            zip(report.samples, report.results, strict=False)
+        ):
+            results_data.append(
+                {
+                    "Question": sample.question[:50] + "...",
+                    "Faithfulness": result.faithfulness,
+                    "Answer Rel.": result.answer_relevancy,
+                    "Context Prec.": result.context_precision,
+                    "Context Rec.": result.context_recall,
+                    "Context Rel.": result.context_relevancy,
+                    "Overall": result.overall_score,
+                }
+            )
 
         df = pd.DataFrame(results_data)
 
@@ -203,24 +223,33 @@ with tab1:
         def color_score(val):
             if isinstance(val, float):
                 if val >= 0.7:
-                    return 'background-color: #90EE90'
+                    return "background-color: #90EE90"
                 elif val >= 0.4:
-                    return 'background-color: #fffacd'
+                    return "background-color: #fffacd"
                 else:
-                    return 'background-color: #ffcccb'
-            return ''
+                    return "background-color: #ffcccb"
+            return ""
 
-        styled_df = df.style.applymap(color_score, subset=[
-            'Faithfulness', 'Answer Rel.', 'Context Prec.',
-            'Context Rec.', 'Context Rel.', 'Overall'
-        ]).format({
-            'Faithfulness': '{:.1%}',
-            'Answer Rel.': '{:.1%}',
-            'Context Prec.': '{:.1%}',
-            'Context Rec.': '{:.1%}',
-            'Context Rel.': '{:.1%}',
-            'Overall': '{:.1%}'
-        })
+        styled_df = df.style.applymap(
+            color_score,
+            subset=[
+                "Faithfulness",
+                "Answer Rel.",
+                "Context Prec.",
+                "Context Rec.",
+                "Context Rel.",
+                "Overall",
+            ],
+        ).format(
+            {
+                "Faithfulness": "{:.1%}",
+                "Answer Rel.": "{:.1%}",
+                "Context Prec.": "{:.1%}",
+                "Context Rec.": "{:.1%}",
+                "Context Rel.": "{:.1%}",
+                "Overall": "{:.1%}",
+            }
+        )
 
         st.dataframe(styled_df, use_container_width=True)
 
@@ -234,12 +263,12 @@ with tab2:
     # Custom question input
     custom_question = st.text_area(
         "Enter your test question:",
-        placeholder="What is the deadline for the final project?"
+        placeholder="What is the deadline for the final project?",
     )
 
     ground_truth = st.text_area(
         "Ground truth answer (optional):",
-        placeholder="The final project is due on December 15th at 11:59 PM."
+        placeholder="The final project is due on December 15th at 11:59 PM.",
     )
 
     if st.button("Evaluate Question"):
@@ -248,14 +277,12 @@ with tab2:
                 try:
                     evaluator = RAGASEvaluator(model=eval_model)
                     pipeline = RAGEvaluationPipeline(
-                        st.session_state.llm_chain,
-                        evaluator
+                        st.session_state.llm_chain, evaluator
                     )
 
                     # Create sample
                     sample = pipeline.create_sample_from_query(
-                        custom_question,
-                        ground_truth if ground_truth else None
+                        custom_question, ground_truth if ground_truth else None
                     )
 
                     # Display RAG response
@@ -264,7 +291,7 @@ with tab2:
 
                     st.markdown("#### Retrieved Context")
                     for i, ctx in enumerate(sample.contexts):
-                        with st.expander(f"Context {i+1}"):
+                        with st.expander(f"Context {i + 1}"):
                             st.write(ctx)
 
                     # Evaluate
@@ -276,10 +303,14 @@ with tab2:
                         st.metric("Faithfulness", f"{result.faithfulness:.1%}")
                         st.metric("Answer Relevancy", f"{result.answer_relevancy:.1%}")
                     with col2:
-                        st.metric("Context Precision", f"{result.context_precision:.1%}")
+                        st.metric(
+                            "Context Precision", f"{result.context_precision:.1%}"
+                        )
                         st.metric("Context Recall", f"{result.context_recall:.1%}")
                     with col3:
-                        st.metric("Context Relevancy", f"{result.context_relevancy:.1%}")
+                        st.metric(
+                            "Context Relevancy", f"{result.context_relevancy:.1%}"
+                        )
                         st.metric("Overall Score", f"{result.overall_score:.1%}")
 
                 except Exception as e:
@@ -305,22 +336,30 @@ with tab3:
                         st.markdown(f"**Timestamp:** {data.get('timestamp', 'N/A')}")
                         st.markdown(f"**Samples:** {data.get('num_samples', 'N/A')}")
 
-                        if 'average_scores' in data:
-                            scores = data['average_scores']
+                        if "average_scores" in data:
+                            scores = data["average_scores"]
                             col1, col2, col3 = st.columns(3)
                             with col1:
-                                st.metric("Overall", f"{scores.get('overall_score', 0):.1%}")
+                                st.metric(
+                                    "Overall", f"{scores.get('overall_score', 0):.1%}"
+                                )
                             with col2:
-                                st.metric("Faithfulness", f"{scores.get('faithfulness', 0):.1%}")
+                                st.metric(
+                                    "Faithfulness",
+                                    f"{scores.get('faithfulness', 0):.1%}",
+                                )
                             with col3:
-                                st.metric("Relevancy", f"{scores.get('answer_relevancy', 0):.1%}")
+                                st.metric(
+                                    "Relevancy",
+                                    f"{scores.get('answer_relevancy', 0):.1%}",
+                                )
 
                         # Download button
                         st.download_button(
                             "Download Report",
                             json.dumps(data, indent=2),
                             file_name=eval_file.name,
-                            mime="application/json"
+                            mime="application/json",
                         )
 
                     except Exception as e:
@@ -339,24 +378,36 @@ if st.session_state.evaluation_results:
     recommendations = []
 
     if avg.faithfulness < 0.7:
-        recommendations.append("**Faithfulness is low**: Consider improving your prompt to emphasize staying grounded in the context.")
+        recommendations.append(
+            "**Faithfulness is low**: Consider improving your prompt to emphasize staying grounded in the context."
+        )
 
     if avg.answer_relevancy < 0.7:
-        recommendations.append("**Answer relevancy needs work**: The model may be including irrelevant information. Try more focused prompts.")
+        recommendations.append(
+            "**Answer relevancy needs work**: The model may be including irrelevant information. Try more focused prompts."
+        )
 
     if avg.context_precision < 0.7:
-        recommendations.append("**Context precision is low**: Your retrieval is returning some irrelevant documents. Consider adjusting the similarity threshold or reranking parameters.")
+        recommendations.append(
+            "**Context precision is low**: Your retrieval is returning some irrelevant documents. Consider adjusting the similarity threshold or reranking parameters."
+        )
 
     if avg.context_recall < 0.7:
-        recommendations.append("**Context recall is low**: The retriever may be missing relevant information. Try increasing `initial_k` or adjusting chunk sizes.")
+        recommendations.append(
+            "**Context recall is low**: The retriever may be missing relevant information. Try increasing `initial_k` or adjusting chunk sizes."
+        )
 
     if avg.context_relevancy < 0.7:
-        recommendations.append("**Context relevancy needs improvement**: Consider using better embeddings or hybrid search weights.")
+        recommendations.append(
+            "**Context relevancy needs improvement**: Consider using better embeddings or hybrid search weights."
+        )
 
     if recommendations:
         for rec in recommendations:
             st.warning(rec)
     else:
-        st.success("🎉 All metrics are above the 70% threshold! Your RAG system is performing well.")
+        st.success(
+            "🎉 All metrics are above the 70% threshold! Your RAG system is performing well."
+        )
 else:
     st.info("Run an evaluation to get personalized recommendations")

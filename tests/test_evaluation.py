@@ -3,9 +3,9 @@ Tests for the RAGAS evaluation framework.
 """
 
 import json
-import pytest
-from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestEvaluationSample:
@@ -19,7 +19,7 @@ class TestEvaluationSample:
             question="What is the grading policy?",
             answer="The final exam is worth 40%.",
             contexts=["Context 1", "Context 2"],
-            ground_truth="Final exam: 40%, Midterm: 30%, Assignments: 30%"
+            ground_truth="Final exam: 40%, Midterm: 30%, Assignments: 30%",
         )
 
         assert sample.question == "What is the grading policy?"
@@ -31,9 +31,7 @@ class TestEvaluationSample:
         from src.dashboard.evaluation import EvaluationSample
 
         sample = EvaluationSample(
-            question="Test question",
-            answer="Test answer",
-            contexts=["Context"]
+            question="Test question", answer="Test answer", contexts=["Context"]
         )
 
         assert sample.ground_truth is None
@@ -51,7 +49,7 @@ class TestEvaluationResult:
             answer_relevancy=0.85,
             context_precision=0.8,
             context_recall=0.75,
-            context_relevancy=0.7
+            context_relevancy=0.7,
         )
 
         assert result.faithfulness == 0.9
@@ -66,7 +64,7 @@ class TestEvaluationResult:
             answer_relevancy=1.0,
             context_precision=1.0,
             context_recall=1.0,
-            context_relevancy=1.0
+            context_relevancy=1.0,
         )
 
         # With all metrics at 1.0, overall should be 1.0
@@ -81,16 +79,16 @@ class TestEvaluationResult:
             answer_relevancy=0.6,
             context_precision=0.4,
             context_recall=0.2,
-            context_relevancy=0.0
+            context_relevancy=0.0,
         )
 
         # Verify weights are applied
         expected = (
-            0.8 * 0.25 +  # faithfulness
-            0.6 * 0.25 +  # answer_relevancy
-            0.4 * 0.20 +  # context_precision
-            0.2 * 0.15 +  # context_recall
-            0.0 * 0.15    # context_relevancy
+            0.8 * 0.25  # faithfulness
+            + 0.6 * 0.25  # answer_relevancy
+            + 0.4 * 0.20  # context_precision
+            + 0.2 * 0.15  # context_recall
+            + 0.0 * 0.15  # context_relevancy
         )
 
         assert abs(result.overall_score - expected) < 0.001
@@ -102,9 +100,9 @@ class TestEvaluationResult:
         result = EvaluationResult(0.9, 0.85, 0.8, 0.75, 0.7)
         result_dict = result.to_dict()
 
-        assert 'faithfulness' in result_dict
-        assert 'overall_score' in result_dict
-        assert result_dict['faithfulness'] == 0.9
+        assert "faithfulness" in result_dict
+        assert "overall_score" in result_dict
+        assert result_dict["faithfulness"] == 0.9
 
 
 class TestEvaluationReport:
@@ -114,8 +112,8 @@ class TestEvaluationReport:
         """Test creating an evaluation report."""
         from src.dashboard.evaluation import (
             EvaluationReport,
+            EvaluationResult,
             EvaluationSample,
-            EvaluationResult
         )
 
         samples = [
@@ -138,8 +136,8 @@ class TestEvaluationReport:
         """Test average score calculation."""
         from src.dashboard.evaluation import (
             EvaluationReport,
+            EvaluationResult,
             EvaluationSample,
-            EvaluationResult
         )
 
         samples = [
@@ -172,8 +170,8 @@ class TestEvaluationReport:
         """Test report conversion to dictionary."""
         from src.dashboard.evaluation import (
             EvaluationReport,
+            EvaluationResult,
             EvaluationSample,
-            EvaluationResult
         )
 
         samples = [EvaluationSample("Q1", "A1", ["C1"])]
@@ -182,10 +180,10 @@ class TestEvaluationReport:
         report = EvaluationReport(samples=samples, results=results)
         report_dict = report.to_dict()
 
-        assert 'timestamp' in report_dict
-        assert 'num_samples' in report_dict
-        assert 'average_scores' in report_dict
-        assert report_dict['num_samples'] == 1
+        assert "timestamp" in report_dict
+        assert "num_samples" in report_dict
+        assert "average_scores" in report_dict
+        assert report_dict["num_samples"] == 1
 
 
 class TestRAGASEvaluator:
@@ -194,7 +192,7 @@ class TestRAGASEvaluator:
     @pytest.fixture
     def mock_llm(self):
         """Create a mock LLM for testing."""
-        with patch('src.dashboard.evaluation.ChatOpenAI') as mock:
+        with patch("src.dashboard.evaluation.ChatOpenAI") as mock:
             mock_instance = MagicMock()
             mock_instance.invoke.return_value = MagicMock(
                 content='{"score": 0.85, "reasoning": "Test reasoning"}'
@@ -254,14 +252,14 @@ class TestRAGASEvaluator:
 
     def test_evaluate_faithfulness(self, mock_llm):
         """Test faithfulness evaluation."""
-        from src.dashboard.evaluation import RAGASEvaluator, EvaluationSample
+        from src.dashboard.evaluation import EvaluationSample, RAGASEvaluator
 
         evaluator = RAGASEvaluator()
 
         sample = EvaluationSample(
             question="What is ML?",
             answer="ML is machine learning.",
-            contexts=["Machine learning is a type of AI."]
+            contexts=["Machine learning is a type of AI."],
         )
 
         score = evaluator.evaluate_faithfulness(sample)
@@ -271,14 +269,14 @@ class TestRAGASEvaluator:
 
     def test_evaluate_sample(self, mock_llm):
         """Test full sample evaluation."""
-        from src.dashboard.evaluation import RAGASEvaluator, EvaluationSample
+        from src.dashboard.evaluation import EvaluationSample, RAGASEvaluator
 
         evaluator = RAGASEvaluator()
 
         sample = EvaluationSample(
             question="What is ML?",
             answer="ML is machine learning.",
-            contexts=["Machine learning is a type of AI."]
+            contexts=["Machine learning is a type of AI."],
         )
 
         result = evaluator.evaluate_sample(sample)
@@ -290,7 +288,7 @@ class TestRAGASEvaluator:
 
     def test_evaluate_batch(self, mock_llm):
         """Test batch evaluation."""
-        from src.dashboard.evaluation import RAGASEvaluator, EvaluationSample
+        from src.dashboard.evaluation import EvaluationSample, RAGASEvaluator
 
         evaluator = RAGASEvaluator()
 
@@ -311,13 +309,13 @@ class TestEvaluationPersistence:
     def test_save_report(self, tmp_path):
         """Test saving evaluation report."""
         from src.dashboard.evaluation import (
-            RAGASEvaluator,
             EvaluationReport,
+            EvaluationResult,
             EvaluationSample,
-            EvaluationResult
+            RAGASEvaluator,
         )
 
-        with patch('src.dashboard.evaluation.ChatOpenAI'):
+        with patch("src.dashboard.evaluation.ChatOpenAI"):
             evaluator = RAGASEvaluator()
 
             samples = [EvaluationSample("Q1", "A1", ["C1"])]
@@ -332,8 +330,8 @@ class TestEvaluationPersistence:
             # Verify content
             with open(output_path) as f:
                 data = json.load(f)
-                assert 'timestamp' in data
-                assert 'average_scores' in data
+                assert "timestamp" in data
+                assert "average_scores" in data
 
     def test_load_report(self, tmp_path):
         """Test loading evaluation report."""
@@ -341,24 +339,21 @@ class TestEvaluationPersistence:
 
         # Create a test report file
         report_data = {
-            'timestamp': '2024-01-01T00:00:00',
-            'num_samples': 1,
-            'average_scores': {
-                'faithfulness': 0.9,
-                'answer_relevancy': 0.8
-            }
+            "timestamp": "2024-01-01T00:00:00",
+            "num_samples": 1,
+            "average_scores": {"faithfulness": 0.9, "answer_relevancy": 0.8},
         }
 
         report_path = tmp_path / "test_report.json"
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(report_data, f)
 
-        with patch('src.dashboard.evaluation.ChatOpenAI'):
+        with patch("src.dashboard.evaluation.ChatOpenAI"):
             evaluator = RAGASEvaluator()
             loaded = evaluator.load_report(report_path)
 
-            assert loaded['num_samples'] == 1
-            assert loaded['average_scores']['faithfulness'] == 0.9
+            assert loaded["num_samples"] == 1
+            assert loaded["average_scores"]["faithfulness"] == 0.9
 
 
 class TestRAGEvaluationPipeline:
@@ -378,7 +373,7 @@ class TestRAGEvaluationPipeline:
                 RetrievalResult("Context 2", "file2.pdf", 2, 0.8, "id2"),
             ],
             confidence=0.85,
-            tokens_used=100
+            tokens_used=100,
         )
         return mock
 
@@ -386,7 +381,7 @@ class TestRAGEvaluationPipeline:
         """Test pipeline initialization."""
         from src.dashboard.evaluation import RAGEvaluationPipeline
 
-        with patch('src.dashboard.evaluation.ChatOpenAI'):
+        with patch("src.dashboard.evaluation.ChatOpenAI"):
             pipeline = RAGEvaluationPipeline(mock_llm_chain)
 
             assert pipeline.llm_chain is not None
@@ -396,12 +391,11 @@ class TestRAGEvaluationPipeline:
         """Test creating evaluation sample from query."""
         from src.dashboard.evaluation import RAGEvaluationPipeline
 
-        with patch('src.dashboard.evaluation.ChatOpenAI'):
+        with patch("src.dashboard.evaluation.ChatOpenAI"):
             pipeline = RAGEvaluationPipeline(mock_llm_chain)
 
             sample = pipeline.create_sample_from_query(
-                "What is the grading policy?",
-                "40% final, 30% midterm, 30% assignments"
+                "What is the grading policy?", "40% final, 30% midterm, 30% assignments"
             )
 
             assert sample.question == "What is the grading policy?"
@@ -413,7 +407,7 @@ class TestRAGEvaluationPipeline:
         """Test evaluating a list of questions."""
         from src.dashboard.evaluation import RAGEvaluationPipeline
 
-        with patch('src.dashboard.evaluation.ChatOpenAI') as mock_chat:
+        with patch("src.dashboard.evaluation.ChatOpenAI") as mock_chat:
             mock_chat.return_value.invoke.return_value = MagicMock(
                 content='{"score": 0.8, "reasoning": "Good"}'
             )
@@ -425,4 +419,4 @@ class TestRAGEvaluationPipeline:
 
             assert len(report.samples) == 2
             assert len(report.results) == 2
-            assert 'rag_config' in report.metadata
+            assert "rag_config" in report.metadata

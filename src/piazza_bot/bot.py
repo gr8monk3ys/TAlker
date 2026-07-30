@@ -1,7 +1,9 @@
 import logging
 import time
+
 import pandas as pd
 import piazza_api
+
 from .responses import Answer, Followup
 
 logging.basicConfig(level=logging.INFO)
@@ -53,20 +55,18 @@ class PiazzaBot:
                 all_posts.extend(batch_of_posts)
                 backoff_time = 4  # Reset backoff time after success
 
-            except (piazza_api.exceptions.RequestError,
-                   piazza_api.exceptions.AuthenticationError,
-                   ConnectionError) as e:
+            except (
+                piazza_api.exceptions.RequestError,
+                piazza_api.exceptions.AuthenticationError,
+                ConnectionError,
+            ) as e:
                 logger.error(
-                    "RequestError: %s. Retrying in %s seconds.",
-                    e,
-                    backoff_time
+                    "RequestError: %s. Retrying in %s seconds.", e, backoff_time
                 )
                 time.sleep(backoff_time)
                 backoff_time *= 2
                 if backoff_time > time_limit:
-                    logger.info(
-                        "Backoff time exceeded time limit. Ending fetch."
-                    )
+                    logger.info("Backoff time exceeded time limit. Ending fetch.")
                     break
                 continue
 
@@ -102,7 +102,7 @@ class PiazzaBot:
         if user_id is None:
             logger.error(
                 "User ID ('uid_a') not found in post history for post_id: %s",
-                post.get('nr')
+                post.get("nr"),
             )
             return None
 
@@ -128,7 +128,7 @@ class PiazzaBot:
 
         for child in post["children"]:
             if child.get("uid") == self.user_profile["user_id"]:
-                logger.info("Skipping post @%s - already commented.", post['nr'])
+                logger.info("Skipping post @%s - already commented.", post["nr"])
                 return True
 
         return False

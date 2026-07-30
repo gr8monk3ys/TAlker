@@ -3,17 +3,19 @@ TAlker - Production-Grade RAG Teaching Assistant
 Main application entry point.
 """
 
-import yaml
 import os
+
 import streamlit as st
 import streamlit_authenticator as stauth
+import yaml
+
 from src.piazza_bot.profile import Profile
 
 st.set_page_config(
     page_title="TAlker - RAG Teaching Assistant",
     page_icon="🎓",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Initialize session state
@@ -131,9 +133,11 @@ def main(authenticator, name):
     data_dir = os.path.join(os.path.dirname(__file__), "..", "..", "data")
     file_count = 0
     if os.path.exists(data_dir):
-        for root, dirs, files in os.walk(data_dir):
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
-            file_count += len([f for f in files if f.endswith(('.txt', '.pdf', '.csv', '.md'))])
+        for _root, dirs, files in os.walk(data_dir):
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
+            file_count += len(
+                [f for f in files if f.endswith((".txt", ".pdf", ".csv", ".md"))]
+            )
 
     with col1:
         if file_count > 0:
@@ -153,6 +157,7 @@ def main(authenticator, name):
         # Check for API keys
         try:
             from src.dashboard.providers import validate_api_keys
+
             api_status = validate_api_keys()
             available = sum(1 for v in api_status.values() if v)
             st.success(f"🤖 {available} providers available")
@@ -175,7 +180,9 @@ def run():
             main_no_auth()
         else:
             st.error("Authentication configuration not found (config.yaml missing).")
-            st.warning("Set TALKER_ALLOW_NO_AUTH=true environment variable to run without authentication.")
+            st.warning(
+                "Set TALKER_ALLOW_NO_AUTH=true environment variable to run without authentication."
+            )
             st.stop()
         return
 
@@ -196,7 +203,7 @@ def run():
             config["cookie"]["name"],
             config["cookie"]["key"],
             config["cookie"]["expiry_days"],
-            config.get("preauthorized", {})
+            config.get("preauthorized", {}),
         )
 
         # Place login in sidebar

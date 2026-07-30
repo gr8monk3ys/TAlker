@@ -3,9 +3,11 @@ Enhanced chat interface with source citations and confidence scores.
 """
 
 import html
-import streamlit as st
-from src.dashboard.llm import LlmChain, RAGConfig
 import os
+
+import streamlit as st
+
+from src.dashboard.llm import LlmChain
 
 
 def escape_html(text: str) -> str:
@@ -14,15 +16,17 @@ def escape_html(text: str) -> str:
         return ""
     return html.escape(str(text))
 
+
 st.set_page_config(
     page_title="Test Bot",
     page_icon="🧪",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS for better chat display
-st.markdown("""
+st.markdown(
+    """
 <style>
 .source-card {
     background-color: #f0f2f6;
@@ -42,7 +46,9 @@ st.markdown("""
     text-align: center;
 }
 </style>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -82,9 +88,9 @@ with st.sidebar:
         files = []
         for root, dirs, filenames in os.walk(data_dir):
             # Skip hidden directories
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
+            dirs[:] = [d for d in dirs if not d.startswith(".")]
             for f in filenames:
-                if f.endswith(('.txt', '.pdf', '.csv', '.md')):
+                if f.endswith((".txt", ".pdf", ".csv", ".md")):
                     files.append(os.path.relpath(os.path.join(root, f), data_dir))
     except Exception:
         files = []
@@ -137,17 +143,22 @@ with col1:
                     with st.expander("📚 View Sources"):
                         for src in message["sources"]:
                             # Escape user-controlled content to prevent XSS
-                            safe_source = escape_html(src['source'])
-                            safe_page = escape_html(str(src['page'])) if src.get('page') else ""
-                            safe_content = escape_html(src['content'][:150])
-                            st.markdown(f"""
+                            safe_source = escape_html(src["source"])
+                            safe_page = (
+                                escape_html(str(src["page"])) if src.get("page") else ""
+                            )
+                            safe_content = escape_html(src["content"][:150])
+                            st.markdown(
+                                f"""
                             <div class="source-card">
                                 <strong>{safe_source}</strong>
                                 {f" (Page {safe_page})" if safe_page else ""}
-                                <br><small>Relevance: {src['relevance']:.1%}</small>
+                                <br><small>Relevance: {src["relevance"]:.1%}</small>
                                 <br><small style="color: #666;">{safe_content}...</small>
                             </div>
-                            """, unsafe_allow_html=True)
+                            """,
+                                unsafe_allow_html=True,
+                            )
 
         # Accept user input
         if prompt := st.chat_input("Ask me anything about your course..."):
@@ -162,7 +173,9 @@ with col1:
                 with st.spinner("🔍 Searching and analyzing..."):
                     try:
                         # Get structured response with sources
-                        response = st.session_state.llm_chain.get_structured_response(prompt)
+                        response = st.session_state.llm_chain.get_structured_response(
+                            prompt
+                        )
 
                         # Display answer
                         st.markdown(response.answer)
@@ -170,10 +183,10 @@ with col1:
                         # Store sources for sidebar display
                         sources_data = [
                             {
-                                'source': src.source,
-                                'page': src.page,
-                                'relevance': src.relevance_score,
-                                'content': src.content
+                                "source": src.source,
+                                "page": src.page,
+                                "relevance": src.relevance_score,
+                                "content": src.content,
                             }
                             for src in response.sources
                         ]
@@ -184,30 +197,41 @@ with col1:
                             with st.expander("📚 View Sources"):
                                 for src in sources_data:
                                     # Escape user-controlled content to prevent XSS
-                                    safe_source = escape_html(src['source'])
-                                    safe_page = escape_html(str(src['page'])) if src.get('page') else ""
-                                    safe_content = escape_html(src['content'][:150])
-                                    st.markdown(f"""
+                                    safe_source = escape_html(src["source"])
+                                    safe_page = (
+                                        escape_html(str(src["page"]))
+                                        if src.get("page")
+                                        else ""
+                                    )
+                                    safe_content = escape_html(src["content"][:150])
+                                    st.markdown(
+                                        f"""
                                     <div class="source-card">
                                         <strong>{safe_source}</strong>
                                         {f" (Page {safe_page})" if safe_page else ""}
-                                        <br><small>Relevance: {src['relevance']:.1%}</small>
+                                        <br><small>Relevance: {src["relevance"]:.1%}</small>
                                         <br><small style="color: #666;">{safe_content}...</small>
                                     </div>
-                                    """, unsafe_allow_html=True)
+                                    """,
+                                        unsafe_allow_html=True,
+                                    )
 
                         # Add to history with sources
-                        st.session_state.messages.append({
-                            "role": "assistant",
-                            "content": response.answer,
-                            "sources": sources_data,
-                            "confidence": response.confidence
-                        })
+                        st.session_state.messages.append(
+                            {
+                                "role": "assistant",
+                                "content": response.answer,
+                                "sources": sources_data,
+                                "confidence": response.confidence,
+                            }
+                        )
 
                     except Exception as e:
                         st.error(f"Error generating response: {str(e)}")
                         if "openai" in str(e).lower():
-                            st.warning("Please check if your OpenAI API key is properly set in the .env file")
+                            st.warning(
+                                "Please check if your OpenAI API key is properly set in the .env file"
+                            )
 
 with col2:
     st.markdown("### Response Metrics")
@@ -235,13 +259,16 @@ with col2:
                 conf_class = "confidence-low"
                 conf_label = "Low"
 
-            st.markdown(f"""
+            st.markdown(
+                f"""
             <div class="metric-box">
                 <h3>Confidence</h3>
                 <h1 class="{conf_class}">{confidence:.0%}</h1>
                 <p>{conf_label} Confidence</p>
             </div>
-            """, unsafe_allow_html=True)
+            """,
+                unsafe_allow_html=True,
+            )
 
             st.markdown("---")
 
@@ -249,12 +276,12 @@ with col2:
             st.metric("Sources Retrieved", len(sources))
 
             if sources:
-                avg_relevance = sum(s['relevance'] for s in sources) / len(sources)
+                avg_relevance = sum(s["relevance"] for s in sources) / len(sources)
                 st.metric("Avg. Relevance", f"{avg_relevance:.1%}")
 
                 # Top source
                 if sources:
-                    top_source = max(sources, key=lambda x: x['relevance'])
+                    top_source = max(sources, key=lambda x: x["relevance"])
                     st.markdown("**Top Source:**")
                     st.info(f"📄 {top_source['source']}")
 

@@ -11,39 +11,36 @@ Production-grade RAG implementation with:
 - Proper logging and error handling
 """
 
-import os
-import logging
+import glob
 import hashlib
+import logging
+import os
 import shutil
-from pathlib import Path
-from typing import Optional, Generator
+import zipfile
+from collections.abc import Generator
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import chromadb
 from chromadb.config import Settings
+from dotenv import load_dotenv
+from langchain.callbacks.base import BaseCallbackHandler
+from langchain.chains import ConversationalRetrievalChain
+from langchain.memory import ConversationBufferWindowMemory
+from langchain.prompts import PromptTemplate
+from langchain.retrievers import EnsembleRetriever
+from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.chains import ConversationalRetrievalChain
-from langchain_community.document_loaders import TextLoader, PyPDFLoader, CSVLoader
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
+from langchain_community.document_loaders import CSVLoader, PyPDFLoader, TextLoader
 from langchain_community.retrievers import BM25Retriever
-from langchain.retrievers import EnsembleRetriever
-from langchain.callbacks.base import BaseCallbackHandler
-from dotenv import load_dotenv
-import glob
-import zipfile
 
 from src.dashboard.providers import (
-    ProviderConfig,
-    LLMFactory,
-    EmbeddingFactory,
-    TokenTracker,
     LLM_MODELS,
-    EMBEDDING_MODELS,
-    LLMProvider,
-    EmbeddingProvider,
+    EmbeddingFactory,
+    LLMFactory,
+    ProviderConfig,
+    TokenTracker,
     check_ollama_availability,
     get_available_ollama_models,
     validate_api_keys,
@@ -53,8 +50,7 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -62,6 +58,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RAGConfig:
     """Configuration for RAG pipeline."""
+
     # Provider configuration
     provider_config: ProviderConfig = field(default_factory=ProviderConfig)
 
@@ -75,7 +72,7 @@ class RAGConfig:
 
     # Retrieval settings
     initial_k: int = 20  # Initial retrieval count
-    final_k: int = 5     # After reranking
+    final_k: int = 5  # After reranking
     bm25_weight: float = 0.3
     semantic_weight: float = 0.7
     similarity_threshold: float = 0.3
@@ -116,9 +113,10 @@ class RAGConfig:
 @dataclass
 class RetrievalResult:
     """Structured retrieval result with metadata."""
+
     content: str
     source: str
-    page: Optional[int]
+    page: int | None
     relevance_score: float
     chunk_id: str
 
@@ -126,6 +124,7 @@ class RetrievalResult:
 @dataclass
 class RAGResponse:
     """Structured RAG response with citations."""
+
     answer: str
     sources: list[RetrievalResult]
     confidence: float
@@ -162,7 +161,7 @@ class LlmChain:
     hybrid search, reranking, and source citations.
     """
 
-    def __init__(self, config: Optional[RAGConfig] = None):
+    def __init__(self, config: RAGConfig | None = None):
         self.config = config or RAGConfig()
         self.data_dir = Path(__file__).parent.parent.parent / "data"
         self.persist_dir = self.data_dir / ".chroma_db"
@@ -201,10 +200,13 @@ class LlmChain:
         """Initialize the cross-encoder reranker."""
         try:
             from sentence_transformers import CrossEncoder
+
             self.reranker = CrossEncoder(self.config.reranker_model)
             logger.info(f"Loaded reranker: {self.config.reranker_model}")
         except Exception as e:
-            logger.warning(f"Failed to load reranker: {e}. Proceeding without reranking.")
+            logger.warning(
+                f"Failed to load reranker: {e}. Proceeding without reranking."
+            )
             self.reranker = None
 
     def _compute_content_hash(self) -> str:
@@ -214,10 +216,14 @@ class LlmChain:
         content_hash.update(self.config.embedding_model.encode())
 
         for file_path in sorted(glob.glob(str(self.data_dir / "**/*"), recursive=True)):
-            if os.path.isfile(file_path) and not file_path.startswith(str(self.persist_dir)):
+            if os.path.isfile(file_path) and not file_path.startswith(
+                str(self.persist_dir)
+            ):
                 try:
                     stat = os.stat(file_path)
-                    content_hash.update(f"{file_path}:{stat.st_mtime}:{stat.st_size}".encode())
+                    content_hash.update(
+                        f"{file_path}:{stat.st_mtime}:{stat.st_size}".encode()
+                    )
                 except Exception:
                     continue
         return content_hash.hexdigest()
@@ -226,7 +232,7 @@ class LlmChain:
         """Safely extract a zip file, preventing zip slip attacks."""
         extract_dir_resolved = extract_dir.resolve()
 
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
             for member in zip_ref.namelist():
                 # Get the target path and resolve it
                 member_path = (extract_dir / member).resolve()
@@ -235,7 +241,9 @@ class LlmChain:
                 try:
                     member_path.relative_to(extract_dir_resolved)
                 except ValueError:
-                    logger.warning(f"Skipping potentially malicious zip member: {member}")
+                    logger.warning(
+                        f"Skipping potentially malicious zip member: {member}"
+                    )
                     continue
 
                 # Extract safely
@@ -263,7 +271,7 @@ class LlmChain:
         documents = []
         self._extract_zip_if_needed()
 
-        supported_extensions = {'.txt', '.pdf', '.csv', '.md'}
+        supported_extensions = {".txt", ".pdf", ".csv", ".md"}
 
         for file_path in glob.glob(str(self.data_dir / "**/*"), recursive=True):
             if not os.path.isfile(file_path):
@@ -285,14 +293,16 @@ class LlmChain:
 
                 # Enhance metadata
                 for doc in docs:
-                    doc.metadata.update({
-                        'source_file': os.path.basename(file_path),
-                        'file_path': file_path,
-                        'file_type': ext[1:],
-                        'chunk_id': hashlib.md5(
-                            f"{file_path}:{doc.page_content[:100]}".encode()
-                        ).hexdigest()[:8]
-                    })
+                    doc.metadata.update(
+                        {
+                            "source_file": os.path.basename(file_path),
+                            "file_path": file_path,
+                            "file_type": ext[1:],
+                            "chunk_id": hashlib.md5(
+                                f"{file_path}:{doc.page_content[:100]}".encode()
+                            ).hexdigest()[:8],
+                        }
+                    )
 
                 documents.extend(docs)
                 logger.info(f"Loaded {len(docs)} document(s) from {file_path}")
@@ -306,13 +316,12 @@ class LlmChain:
     def _get_loader(self, file_path: str, ext: str):
         """Get appropriate document loader for file type."""
         loaders = {
-            '.txt': lambda: TextLoader(file_path, encoding='utf-8'),
-            '.md': lambda: TextLoader(file_path, encoding='utf-8'),
-            '.pdf': lambda: PyPDFLoader(file_path),
-            '.csv': lambda: CSVLoader(
-                file_path,
-                csv_args={'delimiter': ',', 'quotechar': '"'}
-            )
+            ".txt": lambda: TextLoader(file_path, encoding="utf-8"),
+            ".md": lambda: TextLoader(file_path, encoding="utf-8"),
+            ".pdf": lambda: PyPDFLoader(file_path),
+            ".csv": lambda: CSVLoader(
+                file_path, csv_args={"delimiter": ",", "quotechar": '"'}
+            ),
         }
         loader_factory = loaders.get(ext)
         return loader_factory() if loader_factory else None
@@ -350,8 +359,7 @@ class LlmChain:
 
         # Initialize Chroma client with persistence
         client = chromadb.PersistentClient(
-            path=str(self.persist_dir),
-            settings=Settings(anonymized_telemetry=False)
+            path=str(self.persist_dir), settings=Settings(anonymized_telemetry=False)
         )
 
         # Delete existing collection if exists
@@ -365,7 +373,7 @@ class LlmChain:
             embedding=self.embeddings,
             client=client,
             collection_name="course_materials",
-            collection_metadata={"hnsw:space": "cosine"}
+            collection_metadata={"hnsw:space": "cosine"},
         )
 
         self._save_content_hash()
@@ -373,29 +381,33 @@ class LlmChain:
 
         return vectorstore
 
-    def _load_existing_vectorstore(self) -> Optional[Chroma]:
+    def _load_existing_vectorstore(self) -> Chroma | None:
         """Load existing ChromaDB vectorstore if available."""
         try:
             client = chromadb.PersistentClient(
                 path=str(self.persist_dir),
-                settings=Settings(anonymized_telemetry=False)
+                settings=Settings(anonymized_telemetry=False),
             )
 
             vectorstore = Chroma(
                 client=client,
                 collection_name="course_materials",
-                embedding_function=self.embeddings
+                embedding_function=self.embeddings,
             )
 
             # Load documents for BM25 from vectorstore
             collection = client.get_collection("course_materials")
             if collection.count() > 0:
-                results = collection.get(include=['documents', 'metadatas'])
+                results = collection.get(include=["documents", "metadatas"])
                 self.documents = [
                     Document(page_content=doc, metadata=meta or {})
-                    for doc, meta in zip(results['documents'], results['metadatas'])
+                    for doc, meta in zip(
+                        results["documents"], results["metadatas"], strict=False
+                    )
                 ]
-                logger.info(f"Loaded {len(self.documents)} documents from existing vectorstore")
+                logger.info(
+                    f"Loaded {len(self.documents)} documents from existing vectorstore"
+                )
                 return vectorstore
 
         except Exception as e:
@@ -410,8 +422,7 @@ class LlmChain:
 
         # BM25 retriever for keyword matching
         self.bm25_retriever = BM25Retriever.from_documents(
-            self.documents,
-            k=self.config.initial_k
+            self.documents, k=self.config.initial_k
         )
 
         # Semantic retriever
@@ -419,14 +430,14 @@ class LlmChain:
             search_type="similarity_score_threshold",
             search_kwargs={
                 "k": self.config.initial_k,
-                "score_threshold": self.config.similarity_threshold
-            }
+                "score_threshold": self.config.similarity_threshold,
+            },
         )
 
         # Ensemble retriever with weighted combination
         hybrid_retriever = EnsembleRetriever(
             retrievers=[self.bm25_retriever, semantic_retriever],
-            weights=[self.config.bm25_weight, self.config.semantic_weight]
+            weights=[self.config.bm25_weight, self.config.semantic_weight],
         )
 
         logger.info("Created hybrid retriever (BM25 + Semantic)")
@@ -448,8 +459,10 @@ Original question: {query}
 Alternative questions:"""
 
             response = llm.invoke(expansion_prompt)
-            expanded = response.content.strip().split('\n')
-            expanded = [q.strip() for q in expanded if q.strip()][:self.config.num_expanded_queries]
+            expanded = response.content.strip().split("\n")
+            expanded = [q.strip() for q in expanded if q.strip()][
+                : self.config.num_expanded_queries
+            ]
 
             return [query] + expanded
 
@@ -457,10 +470,12 @@ Alternative questions:"""
             logger.warning(f"Query expansion failed: {e}")
             return [query]
 
-    def _rerank_documents(self, query: str, documents: list[Document]) -> list[Document]:
+    def _rerank_documents(
+        self, query: str, documents: list[Document]
+    ) -> list[Document]:
         """Rerank documents using cross-encoder."""
         if not self.reranker or not documents:
-            return documents[:self.config.final_k]
+            return documents[: self.config.final_k]
 
         # Prepare pairs for reranking
         pairs = [[query, doc.page_content] for doc in documents]
@@ -469,22 +484,20 @@ Alternative questions:"""
         scores = self.reranker.predict(pairs)
 
         # Sort by score and return top k
-        scored_docs = list(zip(documents, scores))
+        scored_docs = list(zip(documents, scores, strict=False))
         scored_docs.sort(key=lambda x: x[1], reverse=True)
 
         # Store scores in metadata for citation
         reranked = []
-        for doc, score in scored_docs[:self.config.final_k]:
-            doc.metadata['relevance_score'] = float(score)
+        for doc, score in scored_docs[: self.config.final_k]:
+            doc.metadata["relevance_score"] = float(score)
             reranked.append(doc)
 
         logger.debug(f"Reranked {len(documents)} docs, kept top {len(reranked)}")
         return reranked
 
     def get_conversation_chain(
-        self,
-        vectorstore: Chroma,
-        memory: ConversationBufferWindowMemory = None
+        self, vectorstore: Chroma, memory: ConversationBufferWindowMemory = None
     ) -> ConversationalRetrievalChain:
         """Create conversation chain with hybrid retrieval and reranking."""
 
@@ -495,7 +508,7 @@ Alternative questions:"""
             memory = ConversationBufferWindowMemory(
                 memory_key="chat_history",
                 return_messages=True,
-                k=self.config.memory_window
+                k=self.config.memory_window,
             )
 
         # Enhanced prompt template with citation instructions
@@ -518,8 +531,7 @@ Student's Question: {question}
 Helpful Answer:"""
 
         PROMPT = PromptTemplate(
-            template=prompt_template,
-            input_variables=["context", "question"]
+            template=prompt_template, input_variables=["context", "question"]
         )
 
         # Create hybrid retriever
@@ -531,7 +543,7 @@ Helpful Answer:"""
             memory=memory,
             verbose=False,
             combine_docs_chain_kwargs={"prompt": PROMPT},
-            return_source_documents=True
+            return_source_documents=True,
         )
 
     def _setup_chain(self) -> None:
@@ -582,10 +594,10 @@ This will help me provide accurate answers about your course."""
             self._last_sources = [
                 RetrievalResult(
                     content=doc.page_content[:200] + "...",
-                    source=doc.metadata.get('source_file', 'Unknown'),
-                    page=doc.metadata.get('page'),
-                    relevance_score=doc.metadata.get('relevance_score', 0.0),
-                    chunk_id=doc.metadata.get('chunk_id', 'unknown')
+                    source=doc.metadata.get("source_file", "Unknown"),
+                    page=doc.metadata.get("page"),
+                    relevance_score=doc.metadata.get("relevance_score", 0.0),
+                    chunk_id=doc.metadata.get("chunk_id", "unknown"),
                 )
                 for doc in source_docs
             ]
@@ -631,7 +643,7 @@ This will help me provide accurate answers about your course."""
             confidence=confidence,
             tokens_used=0,
             cost=cost,
-            model_used=self.config.llm_model
+            model_used=self.config.llm_model,
         )
 
     def rebuild_index(self) -> bool:
@@ -655,9 +667,7 @@ This will help me provide accurate answers about your course."""
             return False
 
     def switch_provider(
-        self,
-        llm_model: Optional[str] = None,
-        embedding_model: Optional[str] = None
+        self, llm_model: str | None = None, embedding_model: str | None = None
     ) -> bool:
         """
         Switch to a different LLM or embedding provider.
@@ -688,10 +698,12 @@ This will help me provide accurate answers about your course."""
         """Get status of available providers."""
         return {
             "api_keys": validate_api_keys(),
-            "ollama_models": get_available_ollama_models() if check_ollama_availability() else [],
+            "ollama_models": get_available_ollama_models()
+            if check_ollama_availability()
+            else [],
             "current_llm": self.config.llm_model,
             "current_embeddings": self.config.embedding_model,
-            "token_usage": self.token_tracker.get_summary()
+            "token_usage": self.token_tracker.get_summary(),
         }
 
 
@@ -707,7 +719,7 @@ if __name__ == "__main__":
 
     while True:
         user_input = input("\nYou: ").strip()
-        if user_input.lower() in ['quit', 'exit', 'q']:
+        if user_input.lower() in ["quit", "exit", "q"]:
             break
 
         if user_input.startswith("/switch "):

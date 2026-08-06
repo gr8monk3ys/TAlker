@@ -54,7 +54,8 @@ def sample_text_files(temp_data_dir):
 
     # Create syllabus file
     syllabus = temp_data_dir / "syllabus.txt"
-    syllabus.write_text("""
+    syllabus.write_text(
+        """
 Course: Introduction to Machine Learning
 Instructor: Dr. Smith
 Office Hours: Tuesday 2-4 PM
@@ -65,12 +66,14 @@ Grading:
 - Final Exam: 40%
 
 Late Policy: 10% penalty per day
-""")
+"""
+    )
     files.append(syllabus)
 
     # Create lecture notes
     lecture = temp_data_dir / "lecture1.txt"
-    lecture.write_text("""
+    lecture.write_text(
+        """
 Lecture 1: Introduction to Machine Learning
 
 Machine learning is a field of artificial intelligence that uses
@@ -80,7 +83,8 @@ Key concepts:
 - Supervised learning
 - Unsupervised learning
 - Reinforcement learning
-""")
+"""
+    )
     files.append(lecture)
 
     return files
@@ -88,8 +92,13 @@ Key concepts:
 
 @pytest.fixture
 def mock_openai_embeddings():
-    """Mock OpenAI embeddings for testing without API calls."""
-    with patch("src.dashboard.llm.OpenAIEmbeddings") as mock:
+    """Mock OpenAI embeddings for testing without API calls.
+
+    LlmChain resolves embeddings through EmbeddingFactory.create(), so that is
+    the boundary to patch rather than a provider SDK class (which is only
+    ever imported lazily, inside the factory method).
+    """
+    with patch("src.dashboard.llm.EmbeddingFactory.create") as mock:
         mock_instance = MagicMock()
         # Return consistent fake embeddings
         mock_instance.embed_documents.return_value = [[0.1] * 1536 for _ in range(10)]
@@ -100,8 +109,13 @@ def mock_openai_embeddings():
 
 @pytest.fixture
 def mock_openai_chat():
-    """Mock OpenAI chat for testing without API calls."""
-    with patch("src.dashboard.llm.ChatOpenAI") as mock:
+    """Mock OpenAI chat for testing without API calls.
+
+    LlmChain resolves the LLM through LLMFactory.create(), so that is the
+    boundary to patch rather than a provider SDK class (which is only ever
+    imported lazily, inside the factory method).
+    """
+    with patch("src.dashboard.llm.LLMFactory.create") as mock:
         mock_instance = MagicMock()
         mock_instance.invoke.return_value = MagicMock(
             content="This is a test response about the course materials."
@@ -112,8 +126,12 @@ def mock_openai_chat():
 
 @pytest.fixture
 def mock_cross_encoder():
-    """Mock cross-encoder for testing without model loading."""
-    with patch("src.dashboard.llm.CrossEncoder") as mock:
+    """Mock cross-encoder for testing without model loading.
+
+    LlmChain._init_reranker() imports CrossEncoder lazily from
+    sentence_transformers, so that module is the real patch target.
+    """
+    with patch("sentence_transformers.CrossEncoder") as mock:
         mock_instance = MagicMock()
         mock_instance.predict.return_value = [0.9, 0.7, 0.5, 0.3, 0.1]
         mock.return_value = mock_instance
@@ -124,10 +142,13 @@ def mock_cross_encoder():
 def rag_config():
     """Create a test RAG configuration."""
     from src.dashboard.llm import RAGConfig
+    from src.dashboard.providers import ProviderConfig
 
     return RAGConfig(
-        llm_model="gpt-4o-mini",
-        embedding_model="text-embedding-3-small",
+        provider_config=ProviderConfig(
+            llm_model="gpt-4o-mini",
+            embedding_model="text-embedding-3-small",
+        ),
         chunk_size=500,
         chunk_overlap=50,
         initial_k=10,

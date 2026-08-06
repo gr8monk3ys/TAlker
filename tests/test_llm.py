@@ -26,8 +26,13 @@ class TestRAGConfig:
     def test_custom_config(self):
         """Test custom configuration."""
         from src.dashboard.llm import RAGConfig
+        from src.dashboard.providers import ProviderConfig
 
-        config = RAGConfig(llm_model="gpt-4o-mini", chunk_size=500, final_k=3)
+        config = RAGConfig(
+            provider_config=ProviderConfig(llm_model="gpt-4o-mini"),
+            chunk_size=500,
+            final_k=3,
+        )
 
         assert config.llm_model == "gpt-4o-mini"
         assert config.chunk_size == 500
@@ -83,8 +88,8 @@ class TestTextSplitter:
         """Test that text splitter is configured correctly."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain(config=rag_config)
 
@@ -116,30 +121,35 @@ class TestDocumentLoading:
         """Test getting loader for txt files."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     loader = chain._get_loader("/path/to/file.txt", ".txt")
                     assert loader is not None
 
-    def test_get_loader_pdf(self):
+    def test_get_loader_pdf(self, tmp_path):
         """Test getting loader for pdf files."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        # PyPDFLoader validates that the file exists at construction time,
+        # so a real (even empty) path is needed here.
+        pdf_path = tmp_path / "file.pdf"
+        pdf_path.touch()
+
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
-                    loader = chain._get_loader("/path/to/file.pdf", ".pdf")
+                    loader = chain._get_loader(str(pdf_path), ".pdf")
                     assert loader is not None
 
     def test_get_loader_unsupported(self):
         """Test getting loader for unsupported files."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     loader = chain._get_loader("/path/to/file.xyz", ".xyz")
@@ -149,8 +159,8 @@ class TestDocumentLoading:
         """Test loading documents from a directory."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     chain.data_dir = temp_data_dir
@@ -174,8 +184,8 @@ class TestReranking:
 
         config = RAGConfig(final_k=3)
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder") as mock_ce:
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder") as mock_ce:
                 mock_ce_instance = MagicMock()
                 mock_ce_instance.predict.return_value = [0.9, 0.3, 0.7, 0.1, 0.5]
                 mock_ce.return_value = mock_ce_instance
@@ -201,9 +211,10 @@ class TestReranking:
 
         config = RAGConfig(final_k=3)
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
             with patch(
-                "src.dashboard.llm.CrossEncoder", side_effect=Exception("Load failed")
+                "sentence_transformers.CrossEncoder",
+                side_effect=Exception("Load failed"),
             ):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain(config=config)
@@ -220,8 +231,8 @@ class TestContentHashing:
         """Test content hash computation."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     chain.data_dir = temp_data_dir
@@ -237,8 +248,8 @@ class TestContentHashing:
         """Test that hash changes when content changes."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     chain.data_dir = temp_data_dir
@@ -260,8 +271,8 @@ class TestResponseGeneration:
         """Test response when no chain is initialized."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
                     chain.conversation_chain = None
@@ -274,8 +285,8 @@ class TestResponseGeneration:
         """Test structured response generation."""
         from src.dashboard.llm import LlmChain, RetrievalResult
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
 
@@ -299,8 +310,8 @@ class TestErrorHandling:
         """Test handling of OpenAI API errors."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
 
@@ -312,14 +323,17 @@ class TestErrorHandling:
                     response = chain.get_response("Test question")
 
                     assert "error" in response.lower()
-                    assert "openai" in response.lower()
+                    # The handler doesn't name the provider explicitly, but it
+                    # does surface an actionable API-key hint plus the model.
+                    assert "api key" in response.lower()
+                    assert chain.config.llm_model in response
 
     def test_handles_general_error(self):
         """Test handling of general errors."""
         from src.dashboard.llm import LlmChain
 
-        with patch("src.dashboard.llm.OpenAIEmbeddings"):
-            with patch("src.dashboard.llm.CrossEncoder"):
+        with patch("src.dashboard.llm.EmbeddingFactory.create"):
+            with patch("sentence_transformers.CrossEncoder"):
                 with patch.object(LlmChain, "_setup_chain"):
                     chain = LlmChain()
 

@@ -32,7 +32,7 @@ class TestLLMModels:
         """Test that local models have zero cost."""
         from src.dashboard.providers import LLM_MODELS
 
-        for model in LLM_MODELS.values():
+        for _name, model in LLM_MODELS.items():
             if model.is_local:
                 assert model.input_cost_per_1k == 0.0
                 assert model.output_cost_per_1k == 0.0
@@ -160,7 +160,7 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="gpt-4o")
 
-        with patch("src.dashboard.providers.ChatOpenAI") as mock:
+        with patch("langchain_openai.ChatOpenAI") as mock:
             mock.return_value = MagicMock()
             LLMFactory.create(config)
             mock.assert_called_once()
@@ -171,7 +171,7 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="claude-3-5-sonnet-20241022")
 
-        with patch("src.dashboard.providers.ChatAnthropic") as mock:
+        with patch("langchain_anthropic.ChatAnthropic") as mock:
             mock.return_value = MagicMock()
             LLMFactory.create(config)
             mock.assert_called_once()
@@ -182,7 +182,7 @@ class TestLLMFactory:
 
         config = ProviderConfig(llm_model="llama3.1:8b")
 
-        with patch("src.dashboard.providers.ChatOllama") as mock:
+        with patch("langchain_ollama.ChatOllama") as mock:
             mock.return_value = MagicMock()
             LLMFactory.create(config)
             mock.assert_called_once()
@@ -197,7 +197,7 @@ class TestEmbeddingFactory:
 
         config = ProviderConfig(embedding_model="text-embedding-3-large")
 
-        with patch("src.dashboard.providers.OpenAIEmbeddings") as mock:
+        with patch("langchain_openai.OpenAIEmbeddings") as mock:
             mock.return_value = MagicMock()
             EmbeddingFactory.create(config)
             mock.assert_called_once()
@@ -208,7 +208,7 @@ class TestEmbeddingFactory:
 
         config = ProviderConfig(embedding_model="nomic-embed-text")
 
-        with patch("src.dashboard.providers.OllamaEmbeddings") as mock:
+        with patch("langchain_ollama.OllamaEmbeddings") as mock:
             mock.return_value = MagicMock()
             EmbeddingFactory.create(config)
             mock.assert_called_once()
@@ -264,12 +264,12 @@ class TestHelperFunctions:
         """Test Ollama availability check."""
         from src.dashboard.providers import check_ollama_availability
 
-        with patch("src.dashboard.providers.requests.get") as mock:
+        with patch("requests.get") as mock:
             mock.return_value = MagicMock(status_code=200)
             result = check_ollama_availability()
             assert result is True
 
-        with patch("src.dashboard.providers.requests.get") as mock:
+        with patch("requests.get") as mock:
             mock.side_effect = Exception("Connection failed")
             result = check_ollama_availability()
             assert result is False

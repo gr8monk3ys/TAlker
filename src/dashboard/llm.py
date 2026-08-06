@@ -24,16 +24,16 @@ from pathlib import Path
 import chromadb
 from chromadb.config import Settings
 from dotenv import load_dotenv
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferWindowMemory
-from langchain.prompts import PromptTemplate
-from langchain.retrievers import EnsembleRetriever
-from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_chroma import Chroma
+from langchain_classic.chains import ConversationalRetrievalChain
+from langchain_classic.memory import ConversationBufferWindowMemory
+from langchain_classic.retrievers import EnsembleRetriever
 from langchain_community.document_loaders import CSVLoader, PyPDFLoader, TextLoader
 from langchain_community.retrievers import BM25Retriever
+from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.dashboard.providers import (
     LLM_MODELS,

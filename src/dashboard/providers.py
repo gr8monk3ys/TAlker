@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from dotenv import load_dotenv
-from langchain.callbacks.base import BaseCallbackHandler
+from langchain_core.callbacks import BaseCallbackHandler
 
 load_dotenv()
 logger = logging.getLogger(__name__)

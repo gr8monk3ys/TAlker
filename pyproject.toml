@@ -20,38 +20,35 @@ piazza-api = "^0.12.0"
 python-dotenv = "^1.0.0"
 requests = "^2.32.4"
 
-# LangChain Core
-langchain = "^0.3.18"
-langchain-community = "^0.3.27"
-langchain-chroma = "^0.2.0"
+# LangChain Core (1.x line; the 0.3.x series has unpatched CVEs)
+langchain = "^1.3.9"
+langchain-classic = "^1.0.0"
+langchain-core = ">=1.2.22"
+langchain-text-splitters = ">=1.1.2"
+langchain-community = "*"
+langchain-chroma = "*"
 
-# LLM Providers
-langchain-openai = "^0.3.0"
-langchain-anthropic = "^0.3.0"
-langchain-google-genai = "^2.0.0"
-langchain-cohere = "^0.3.0"
-langchain-ollama = "^0.3.0"
-langchain-huggingface = "^0.1.0"
-
-# LLM & Embeddings
-openai = "^1.0.0"
-tiktoken = "^0.8.0"
-anthropic = "^0.40.0"
-cohere = "^5.0.0"
-google-generativeai = "^0.8.0"
+# LLM Providers (SDKs come transitively via these integration packages)
+langchain-openai = "^1.1.14"
+langchain-anthropic = "^1.4.6"
+langchain-google-genai = "*"
+langchain-cohere = "*"
+langchain-ollama = "*"
+langchain-huggingface = "*"
 
 # Vector Store
-chromadb = "^0.5.0"
+chromadb = "*"
 
 # Hybrid Search & Reranking
-sentence-transformers = "^3.0.0"
+sentence-transformers = "*"
+transformers = ">=5.5.0"
 rank-bm25 = "^0.2.2"
 
 # Local Embeddings (optional, for offline use)
-fastembed = {version = "^0.8.0", optional = true}
+fastembed = {version = "*", optional = true}
 
 # Document Processing
-pypdf2 = "^3.0.1"
+pypdf = "*"
 
 # Security pins (transitive dependency minimums)
 h11 = ">=0.16.0"
@@ -60,7 +57,9 @@ pillow = ">=12.1.1"
 protobuf = ">=5.29.6"
 urllib3 = ">=2.6.3"
 tornado = ">=6.5"
-unstructured = "^0.16.0"
+gitpython = ">=3.1.57"
+cryptography = ">=50.0.0"
+unstructured = "^0.18.18"
 
 # Data & Visualization
 pandas = "^2.1.4"
@@ -73,13 +72,13 @@ local = ["fastembed"]
 
 [tool.poetry.group.dev.dependencies]
 # Testing
-pytest = "^8.0.0"
-pytest-cov = "^4.1.0"
-pytest-asyncio = "^0.23.0"
+pytest = "^9.0.3"
+pytest-cov = "*"
+pytest-asyncio = "*"
 pytest-mock = "^3.12.0"
 
 # Code Quality
-black = "^24.1.1"
+black = "^26.3.1"
 pylint = "^3.0.3"
 mypy = "^1.8.0"
 ruff = "^0.4.0"
@@ -95,6 +94,8 @@ include = '\.pyi?$'
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+
+[tool.ruff.lint]
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings

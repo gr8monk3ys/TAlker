@@ -47,12 +47,18 @@ does not yet support Python 3.13+, so declaring a wider range makes the
 Poetry resolver try to satisfy versions of `unstructured`/`fastembed` for
 3.13 that don't exist, and resolution fails outright.
 
-`fastembed` is pinned to `^0.8.0` and `tiktoken` to `^0.8.0` specifically
-because those are the minimum versions compatible with the `pillow>=12.1.1`
-and `langchain-openai>=0.3.0` pins already in this file. Older `fastembed`
-versions cap `pillow<12`, and `langchain-openai` requires `tiktoken>=0.7`
-while the old pin capped it at `<0.6`. Don't downgrade either without also
-checking the transitive constraint that made them move in the first place.
+The LangChain stack is on the **1.x line** (`langchain`, `langchain-core`,
+plus `langchain-classic` for the legacy `chains`/`memory`/`retrievers`
+APIs that `src/dashboard/llm.py` uses). The 0.3.x series has known CVEs
+with no patched releases, so don't downgrade below the floors declared in
+`pyproject.toml`. Direct SDK pins (`openai`, `anthropic`, `cohere`,
+`google-generativeai`, `tiktoken`) were removed deliberately — nothing
+imports them directly, and the `langchain-*` provider packages resolve
+their own compatible SDK versions.
+
+PDF handling uses `pypdf`, the maintained successor of `PyPDF2`. The old
+`PyPDF2` package is unmaintained and its last release carries an unfixed
+CVE — don't reintroduce it.
 
 ## Known gaps (not covered by `make test`, tracked separately)
 

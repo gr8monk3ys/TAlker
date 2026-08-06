@@ -6,3 +6,9 @@ parameters.py
 config.yaml
 secrets.toml
 .venv
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/

@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 
 @pytest.fixture

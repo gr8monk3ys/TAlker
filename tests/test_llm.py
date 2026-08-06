@@ -4,7 +4,7 @@ Tests for the LlmChain RAG implementation.
 
 from unittest.mock import MagicMock, patch
 
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 
 class TestRAGConfig:
@@ -98,7 +98,7 @@ class TestTextSplitter:
 
     def test_text_splitting(self, sample_documents):
         """Test that documents are split correctly."""
-        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
 
         splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=20)
 

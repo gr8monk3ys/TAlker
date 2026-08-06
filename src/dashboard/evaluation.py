@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
-from langchain.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI
 
 load_dotenv()

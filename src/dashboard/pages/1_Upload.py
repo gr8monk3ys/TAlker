@@ -3,8 +3,8 @@ import re
 from datetime import datetime
 from io import BytesIO
 
-import PyPDF2
 import streamlit as st
+from pypdf import PdfReader
 
 # Set page config
 st.set_page_config(
@@ -80,7 +80,7 @@ def list_files(directory):
 def process_pdf(uploaded_file):
     """Extract text from PDF and save as TXT."""
     try:
-        pdf_reader = PyPDF2.PdfReader(BytesIO(uploaded_file.getvalue()))
+        pdf_reader = PdfReader(BytesIO(uploaded_file.getvalue()))
         text = ""
         for page in pdf_reader.pages:
             text += page.extract_text() + "\n"

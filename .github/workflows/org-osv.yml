@@ -27,7 +27,7 @@ jobs:
   # upstream recommends ("we recommend using the reusable workflows instead of
   # directly using the scanner action").
   osv:
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@c5996e0193a3df57d695c1b8a1dec2a4c62e8730
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@8deb546fdb875b9996d27d4950be7312dac076a1
     with:
       fail-on-vuln: false
       upload-sarif: false

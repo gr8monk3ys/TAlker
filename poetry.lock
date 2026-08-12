@@ -5355,14 +5355,14 @@ re2 = ["google-re2 (>=1.1)"]
 
 [[package]]
 name = "piazza-api"
-version = "0.12.0"
+version = "0.15.0"
 description = "Unofficial Client for Piazza's Internal API"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "piazza-api-0.12.0.tar.gz", hash = "sha256:6f6596d81998f90b662edb3fdbaa7f697a8b59d4dbd5749e7005fc6ce684dcf5"},
-    {file = "piazza_api-0.12.0-py3-none-any.whl", hash = "sha256:1ce79114ba72faf5680d3b07f8d38fa0cf006bbc2e239d0676bd2b125eb6ef34"},
+    {file = "piazza_api-0.15.0-py3-none-any.whl", hash = "sha256:902ae2334df27ffe67ce791897bd93c65cd78a21c4467688ecb4105c932db8cc"},
+    {file = "piazza_api-0.15.0.tar.gz", hash = "sha256:e8a9a43681bc7a777e71e38b32611151281498a48064beb31a0218327eac57d0"},
 ]
 
 [package.dependencies]
@@ -9532,4 +9532,4 @@ local = ["fastembed"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.13"
-content-hash = "2d6faf5c25978fad2b1dd580e025f11696328ed174353a3479f4db25eb56a827"
+content-hash = "cd8d55cf06c38f8ffb42112081d7e96e0a275471315e98faf4336fb1fc7190b8"

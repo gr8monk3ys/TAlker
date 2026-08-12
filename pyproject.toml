@@ -10,7 +10,7 @@ packages = [{include = "src"}]
 python = ">=3.10,<3.13"
 
 # Web Framework
-streamlit = "^1.29.0"
+streamlit = "^1.61.1"
 streamlit-authenticator = "^0.3.1"
 
 # Piazza Integration

@@ -5,6 +5,31 @@ All notable changes to TAlker will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.0 (2026-08-19)
+
+
+### Features
+
+* Multi-provider support with offline capabilities ([7641566](https://github.com/gr8monk3ys/TAlker/commit/7641566b9c605c049522ef92c237625b016dbcf0))
+* Production-grade RAG implementation with RAGAS evaluation ([d3a60ff](https://github.com/gr8monk3ys/TAlker/commit/d3a60ff3c92f4c9fe96c59be2fcbf94e4754d7ab))
+* Production-grade RAG implementation with RAGAS evaluation ([82e7ed4](https://github.com/gr8monk3ys/TAlker/commit/82e7ed49e886672ab2216125dd5168dfdf58c0ca))
+
+
+### Bug Fixes
+
+* **ci:** call the OSV reusable workflow instead of a nonexistent action ([#13](https://github.com/gr8monk3ys/TAlker/issues/13)) ([d1e5020](https://github.com/gr8monk3ys/TAlker/commit/d1e5020ad1e3c98e3d02cdc763cb754e2a496f97))
+* **ci:** declare only the languages this repo contains ([#12](https://github.com/gr8monk3ys/TAlker/issues/12)) ([c5e532e](https://github.com/gr8monk3ys/TAlker/commit/c5e532e653e66292d795263d1abf52880133854b))
+* **security:** clear all dependency vulnerabilities + salvage orphan-branch work ([#16](https://github.com/gr8monk3ys/TAlker/issues/16)) ([5240eac](https://github.com/gr8monk3ys/TAlker/commit/5240eac23f1c62ae61044b71b3a685a632e08ace))
+* unblock poetry install and repair stale test mocks ([#10](https://github.com/gr8monk3ys/TAlker/issues/10)) ([ed7d804](https://github.com/gr8monk3ys/TAlker/commit/ed7d80434cb9f98fdd17006a0bab98e120688161))
+* update dependencies to resolve 36 security vulnerabilities ([1735468](https://github.com/gr8monk3ys/TAlker/commit/17354684057b2091eb822df0b97822decc540fd7))
+
+
+### Documentation
+
+* add hero image to README ([#11](https://github.com/gr8monk3ys/TAlker/issues/11)) ([bfba400](https://github.com/gr8monk3ys/TAlker/commit/bfba400dee2cd8db8dbfa6db9058a76caf0686b6))
+* Update documentation and build system ([642b0b6](https://github.com/gr8monk3ys/TAlker/commit/642b0b6de079505b4b26f24aca2a6f0d431bfb53))
+* Update README, CHANGELOG, and clean up code ([4e8c02c](https://github.com/gr8monk3ys/TAlker/commit/4e8c02c386e4250ae9ada4d455012730e9d6a15e))
+
 ## [0.3.0] - 2025-01-20
 
 ### Added

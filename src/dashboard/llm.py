@@ -1,5 +1,5 @@
 """
-Production-grade RAG implementation with:
+RAG implementation with:
 - Multi-provider LLM support (OpenAI, Anthropic, Google, Cohere, Ollama)
 - Multi-provider embeddings (OpenAI, Cohere, Ollama, HuggingFace, FastEmbed)
 - ChromaDB for persistent vector storage
@@ -157,7 +157,7 @@ class StreamingCallbackHandler(BaseCallbackHandler):
 
 class LlmChain:
     """
-    Production-grade RAG implementation with multi-provider support,
+    RAG chain with multi-provider support,
     hybrid search, reranking, and source citations.
     """
 
@@ -609,7 +609,11 @@ This will help me provide accurate answers about your course."""
             logger.error(f"Error generating response: {error_msg}", exc_info=True)
 
             if "api" in error_msg.lower() or "key" in error_msg.lower():
-                return f"Error: API connection failed. Please check your API key for {self.config.llm_model}."
+                provider = self.config.provider_config.get_llm_info().provider.value
+                return (
+                    "Error: API connection failed. Please check your "
+                    f"{provider} API key for {self.config.llm_model}."
+                )
             if "ollama" in error_msg.lower():
                 return "Error: Could not connect to Ollama. Make sure Ollama is running locally."
             return f"Error generating response: {error_msg}"

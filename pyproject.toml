@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "talker"
 version = "1.0.0"
-description = "A Production-Grade Multi-Provider RAG Teaching Assistant"
+description = "Streamlit RAG assistant that answers course questions from lecture notes, with an optional Piazza bot"
 authors = ["Lorenzo Scaturchio"]
 readme = "README.md"
 packages = [{include = "src"}]

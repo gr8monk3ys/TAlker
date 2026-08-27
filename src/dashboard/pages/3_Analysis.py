@@ -14,16 +14,20 @@ st.set_page_config(
 )
 
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "..", "data")
+
+
 def load_posts():
-    """Load posts from CSV file."""
+    """Load posts from data/posts.csv (scraped), else the bundled sample."""
     try:
-        posts_path = os.path.join(
-            os.path.dirname(__file__), "..", "..", "..", "data", "posts.csv"
-        )
-        if os.path.exists(posts_path):
-            df = pd.read_csv(posts_path)
-            df["timestamp"] = pd.to_datetime(df["timestamp"])
-            return df
+        for posts_path in (
+            os.path.join(DATA_DIR, "posts.csv"),
+            os.path.join(DATA_DIR, "sample", "posts.csv"),
+        ):
+            if os.path.exists(posts_path):
+                df = pd.read_csv(posts_path)
+                df["timestamp"] = pd.to_datetime(df["timestamp"])
+                return df
         return None
     except Exception as e:
         st.error(f"Error loading posts: {str(e)}")

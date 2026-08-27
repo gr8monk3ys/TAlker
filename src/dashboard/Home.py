@@ -1,5 +1,5 @@
 """
-TAlker - Production-Grade RAG Teaching Assistant
+TAlker - RAG teaching assistant.
 Main application entry point.
 """
 
@@ -52,7 +52,7 @@ def main(authenticator, name):
 
     st.title("🎓 TAlker - RAG Teaching Assistant")
     st.markdown("""
-    A production-grade RAG system for automating teaching assistant tasks.
+    A RAG assistant for course Q&A.
     Upload course materials and get AI-powered answers with source citations.
     """)
 
@@ -233,7 +233,7 @@ def main_no_auth():
     """Run main app without authentication."""
     st.title("🎓 TAlker - RAG Teaching Assistant")
     st.markdown("""
-    A production-grade RAG system for automating teaching assistant tasks.
+    A RAG assistant for course Q&A.
     Upload course materials and get AI-powered answers with source citations.
     """)
 
@@ -269,7 +269,7 @@ def show_demo_info():
     st.markdown("---")
     st.markdown("### About TAlker")
     st.markdown("""
-    TAlker is a production-grade RAG (Retrieval-Augmented Generation) system
+    TAlker is a RAG (Retrieval-Augmented Generation) system
     designed to help teaching assistants automate responses to student questions.
 
     **Key Features:**

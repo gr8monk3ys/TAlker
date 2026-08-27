@@ -1,10 +1,14 @@
 import logging
 import time
+from pathlib import Path
 
 import pandas as pd
 import piazza_api
 
 from .responses import Answer, Followup
+
+# Scraped posts are written here; the directory is git-ignored (only data/sample/ is tracked).
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -153,7 +157,8 @@ class PiazzaBot:
             if post_info is not None:
                 posts_data.append(post_info)
         self.df = pd.DataFrame(posts_data)
-        self.df.to_csv("../data/posts.csv")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        self.df.to_csv(DATA_DIR / "posts.csv")
 
     def process_new_posts(self):
         """Evaluate and respond to new posts on the course network."""
@@ -165,7 +170,8 @@ class PiazzaBot:
             if post_info is not None:
                 posts_data.append(post_info)
         self.df = pd.DataFrame(posts_data)
-        self.df.to_csv("../data/posts.csv")
+        DATA_DIR.mkdir(parents=True, exist_ok=True)
+        self.df.to_csv(DATA_DIR / "posts.csv")
 
     def respond_to_post(self, post):
         post_info = self.get_user_info(post)

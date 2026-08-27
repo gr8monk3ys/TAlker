@@ -8,13 +8,14 @@ login) is intentionally not exercised.
 """
 
 import time
+from pathlib import Path
 from unittest.mock import MagicMock, call
 
 import pandas as pd
 import piazza_api
 import pytest
 
-from src.piazza_bot.bot import PiazzaBot
+from src.piazza_bot.bot import DATA_DIR, PiazzaBot
 from src.piazza_bot.responses import Answer, Followup
 
 # ---------------------------------------------------------------------------
@@ -442,7 +443,7 @@ class TestProcessPosts:
 
         bot.process_all_posts()
 
-        assert written["path"] == "../data/posts.csv"
+        assert Path(written["path"]) == DATA_DIR / "posts.csv"
         assert list(written["frame"]["post_id"]) == [2]
         assert list(written["frame"]["username"]) == ["Carol"]
         assert list(bot.df["post_id"]) == [2]
@@ -471,7 +472,7 @@ class TestProcessPosts:
         bot.process_new_posts()
 
         assert get_posts_calls == [300]
-        assert written["path"] == "../data/posts.csv"
+        assert Path(written["path"]) == DATA_DIR / "posts.csv"
         assert list(written["frame"].columns) == list(bot.df.columns)
 
     def test_process_all_posts_skips_posts_with_missing_user_info(

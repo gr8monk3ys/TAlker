@@ -1,23 +1,13 @@
 # Security Policy
 
-## Supported Versions
+TAlker is a small course project and is not maintained on a release schedule.
+Only the `master` branch receives fixes.
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+## Reporting a vulnerability
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+Please report privately through GitHub Security Advisories:
+https://github.com/gr8monk3ys/TAlker/security/advisories
 
-## Reporting a Vulnerability
-
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
-
-For private disclosure, use GitHub Security Advisories: [https://github.com/gr8monk3ys/TAlker/security/advisories](https://github.com/gr8monk3ys/TAlker/security/advisories).
+Do not open a public issue for security problems. Never commit real API keys,
+Piazza credentials, or course data; `.env`, `config.yaml`, `secrets.toml` and
+`data/` (except `data/sample/`) are git-ignored for that reason.
